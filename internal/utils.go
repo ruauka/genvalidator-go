@@ -10,7 +10,7 @@ import (
 )
 
 func readStruct() string {
-	f, err := os.Open("temp.go")
+	f, err := os.Open("example.go")
 	if err != nil {
 		panic(err)
 	}
@@ -55,4 +55,31 @@ func rewriteFile() {
 		log.Fatalf("os.WriteFile err: %s", err)
 	}
 
+}
+
+// validateTagParse - парсинг правил.
+func validateTagParse(tag string) [][]string {
+	var (
+		splited = strings.Split(tag, ",")
+		trimmed = make([][]string, len(splited))
+	)
+
+	for idx, sl := range splited {
+		splited := strings.Split(sl, "=")
+		for _, val := range splited {
+			trimmed[idx] = append(trimmed[idx], strings.TrimSpace(val))
+		}
+	}
+
+	return trimmed // [[rq] [lt 10]]
+}
+
+func isPtr(tags [][]string) bool {
+	for _, tag := range tags {
+		if tag[0] == "rq" {
+			return true
+		}
+	}
+
+	return false
 }

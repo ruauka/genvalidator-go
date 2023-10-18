@@ -5,8 +5,9 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
-	"strings"
 	"text/template"
+
+	"github.com/fatih/structtag"
 
 	"genvalidator/internal/templates"
 )
@@ -46,21 +47,99 @@ func Execute() {
 			if field.Tag == nil {
 				continue
 			}
+			// парсингвсех тегов
+			tags, err := structtag.Parse(field.Tag.Value[1 : len(field.Tag.Value)-1])
+			if err != nil {
+				log.Fatalf("structtag.Parse. Tags parse error: %s", err)
+			}
 
-			for _, tag := range strings.Split(field.Tag.Value, " ") {
+			jsonName, err := tags.Get("json")
+			if err != nil {
+				panic(err)
+			}
+
+			for _, tag := range tags.Tags() {
+
 				// фильтр по тегу "validate"
-				if !strings.HasPrefix(tag, "validate") {
+				if tag.Key != "validate" {
 					continue
 				}
-				// поля для шаблона
-				d := templates.New(typeSpec.Name.String(), field.Names[0].String())
+
+				tagsParsed := validateTagParse(tag.Value())
+				// [[rq]]
+				// [[rq] [lt 10]]
+
+				var (
+					templFields   templates.TemplateFields
+					t             *template.Template
+					temp          = templates.NewTemplate()
+					isFirstConcat = true
+					index         int
+				)
+
+				for _, tags := range tagsParsed {
+					if isFirstConcat {
+						index = 65
+					} else {
+						index = len(temp.Buffer) - 17
+					}
+					switch {
+					case len(tags) == 1 && tags[0] == "rq":
+						// поля для шаблона
+						templFields.StructName = typeSpec.Name.String()
+						templFields.StrategyFieldName = field.Names[0].String()
+						templFields.JsonFieldName = jsonName.Name
+						// создание шаблона
+						temp.Concat(templates.Require(), index, isFirstConcat)
+						isFirstConcat = false
+					case tags[0] == "lt":
+						// поля для шаблона
+						templFields.StructName = typeSpec.Name.String()
+						templFields.StrategyFieldName = field.Names[0].String()
+						templFields.JsonFieldName = jsonName.Name
+						templFields.LessThan = tags[1]
+						// создание шаблона
+						var te string
+						if isPtr(tagsParsed) {
+							te = templates.LessThanPtr()
+						} else {
+							te = templates.LessThan()
+						}
+						temp.Concat(te, index, isFirstConcat)
+						isFirstConcat = false
+					case tags[0] == "gte":
+						// поля для шаблона
+						templFields.StructName = typeSpec.Name.String()
+						templFields.StrategyFieldName = field.Names[0].String()
+						templFields.JsonFieldName = jsonName.Name
+						templFields.GreaterThanOrEq = tags[1]
+						// создание шаблона
+						var te string
+						if isPtr(tagsParsed) {
+							te = templates.GreaterThanOrEqPtr()
+						} else {
+							te = templates.GreaterThanOrEq()
+						}
+						temp.Concat(te, index, isFirstConcat)
+						isFirstConcat = false
+					}
+				}
+
+				var err error
 				// создание шаблона
-				t := template.Must(template.New("require").Parse(templates.Require()))
-				// дозапись шаблона в файл validate.go
-				err = t.Execute(file, d)
+				p, err := template.New("").Parse(temp.Buffer)
+				if err != nil {
+					log.Fatalln(111, err)
+				}
+
+				t = template.Must(p, err)
+
+				err = t.Execute(file, templFields)
 				if err != nil {
 					log.Fatalln("execute: ", err)
 				}
+
+				temp.Reset()
 			}
 		}
 
