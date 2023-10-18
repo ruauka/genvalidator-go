@@ -71,7 +71,28 @@ func validateTagParse(tag string) [][]string {
 		}
 	}
 
-	return trimmed // [[rq] [lt 10]]
+	// постановка тега "rq" на первое место, на случай если последовательность правил начинается не с "rq"
+	if len(trimmed) > 1 {
+		var (
+			trimmedSorted = make([][]string, 0, len(trimmed))
+			index         int
+		)
+
+		for idx, sl := range trimmed {
+			if len(sl) == 1 && sl[0] == "rq" {
+				trimmedSorted = append(trimmedSorted, sl)
+				index = idx
+				break
+			}
+		}
+
+		trimmedSorted = append(trimmedSorted, trimmed[:index]...)
+		trimmedSorted = append(trimmedSorted, trimmed[index+1:]...)
+
+		return trimmedSorted
+	}
+
+	return trimmed // [[rq]] или [[lt 10]]
 }
 
 func isPtr(tags [][]string) bool {
