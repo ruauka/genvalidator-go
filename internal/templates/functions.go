@@ -1,29 +1,29 @@
-package internal
+package templates
 
 import (
 	"fmt"
 	"strings"
 )
 
-type Template struct {
+type FunctionsTemplate struct {
 	Buffer string
 }
 
-func NewTemplate() *Template {
-	return &Template{Buffer: ValidateFunc()}
+func NewFunctionsTemplate() *FunctionsTemplate {
+	return &FunctionsTemplate{Buffer: ValidateFunc()}
 }
 
-func (r *Template) Concat(template string, index int, isFirstConcat bool) {
+func (f *FunctionsTemplate) Concat(template string, index int, isFirstConcat bool) {
 	if isFirstConcat {
-		r.Buffer = r.Buffer[:index] + template + r.Buffer[index:]
+		f.Buffer = f.Buffer[:index] + template + f.Buffer[index:]
 		return
 	}
 
-	r.Buffer = "\n" + strings.TrimSpace(r.Buffer[:index]) + template + "\n" + r.Buffer[index:]
+	f.Buffer = "\n" + strings.TrimSpace(f.Buffer[:index]) + template + "\n" + f.Buffer[index:]
 }
 
-func (r *Template) Reset() {
-	r.Buffer = ValidateFunc()
+func (f *FunctionsTemplate) Reset() {
+	f.Buffer = ValidateFunc()
 }
 
 type TemplateFields struct {

@@ -5,13 +5,19 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"os"
 	"strings"
 	"text/template"
 
 	"github.com/fatih/structtag"
+
+	"genvalidator/internal/templates"
 )
 
-var checkMap = make(map[string]struct{})
+var (
+	greaterThen = []string{"GreaterThen", "больше", "greater"}
+	lessThen    = []string{"LessThen", "меньше", "less"}
+)
 
 func Execute() {
 	// зачитывание и парсинг структуры в строку
@@ -26,18 +32,18 @@ func Execute() {
 
 	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
 	if needRewriteFile("validation/validate.go") {
-		rewriteFile("validation/validate.go", HeadValidate)
+		rewriteFile("validation/validate.go", templates.HeadValidate)
 	}
 
 	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
 	if needRewriteFile("validation/errors.go") {
-		rewriteFile("validation/errors.go", HeadErrors)
+		rewriteFile("validation/errors.go", templates.HeadErrors)
 	}
 
 	fileValidate := fileOpen("validation/validate.go")
 	fileErr := fileOpen("validation/errors.go")
 
-	errTemp := NewTemplateError()
+	errTemp := templates.NewTemplateError()
 
 	ast.Inspect(astFile, func(node ast.Node) bool {
 		typeSpec, ok := node.(*ast.TypeSpec)
@@ -88,9 +94,8 @@ func Execute() {
 				// [[rq] [lt 10]]
 
 				var (
-					templFields   TemplateFields
-					tValid        *template.Template
-					temp          = NewTemplate()
+					templFields   templates.TemplateFields
+					temp          = templates.NewFunctionsTemplate()
 					isFirstConcat = true
 					index         int
 					counter       = 1
@@ -104,30 +109,26 @@ func Execute() {
 					}
 					switch {
 					case len(tags) == 1 && tags[0] == "rq":
-						// проверка на наличие уже созданной ошибки
-						if _, ok := checkMap["rq"]; !ok {
-							// создание шаблона error
-							errTemp.Concat(RequireErr(), 6, counter)
-							counter++
-							checkMap["rq"] = struct{}{}
-						}
+						// проверка на наличие уже созданной ошибки и добавление шаблона ошибки в буфер
+						templates.AddErrTemplateToBuffer("rq", templates.RequireErr(), &counter, errTemp)
+
 						// поля для шаблона
 						templFields.StructName = typeSpec.Name.String()
 						templFields.StrategyFieldName = field.Names[0].String()
 						templFields.JsonFieldName = jsonName.Name
 						// создание шаблона validate
-						temp.Concat(Require(), index, isFirstConcat)
+						temp.Concat(templates.Require(), index, isFirstConcat)
 						isFirstConcat = false
 					case tags[0] == "lt":
-						var errStr = createErr([]string{"GreaterThen", "больше", "greater"}, tags[1])
-						// проверка на наличие уже созданной ошибки
-						_, ok := checkMap[tags[0]+tags[1]]
-						if !ok {
-							// создание шаблона error
-							errTemp.Concat(errStr, 6, counter)
-							counter++
-							checkMap[tags[0]+tags[1]] = struct{}{}
-						}
+						var (
+							// создание шаблона ошибки
+							errTemplate = templates.CreateErrorTemplate(greaterThen, tags[1])
+							// получение названия переменной ошибки
+							errVarName = strings.Split(errTemplate, " ")[5]
+						)
+						// проверка на наличие уже созданной ошибки и добавление шаблона ошибки в буфер
+						templates.AddErrTemplateToBuffer(tags[0]+tags[1], errTemplate, &counter, errTemp)
+
 						// поля для шаблона
 						templFields.StructName = typeSpec.Name.String()
 						templFields.StrategyFieldName = field.Names[0].String()
@@ -136,24 +137,25 @@ func Execute() {
 						// создание шаблона
 						var te string
 						if isArr {
-							te = LessThanSl(strings.Split(errStr, " ")[5])
+							te = templates.LessThanSl(errVarName)
 						} else if isRqTag(tagsParsed) {
-							te = LessThanPtr(strings.Split(errStr, " ")[5])
+							te = templates.LessThanPtr(errVarName)
 						} else {
-							te = LessThan(strings.Split(errStr, " ")[5])
+							te = templates.LessThan(errVarName)
 						}
 						temp.Concat(te, index, isFirstConcat)
 						isFirstConcat = false
 					case tags[0] == "gt":
-						var errStr = createErr([]string{"LessThen", "меньше", "less"}, tags[1])
-						// проверка на наличие уже созданной ошибки
-						_, ok := checkMap[tags[0]+tags[1]]
-						if !ok {
-							// создание шаблона error
-							errTemp.Concat(errStr, 6, counter)
-							counter++
-							checkMap[tags[0]+tags[1]] = struct{}{}
-						}
+						var (
+							// создание шаблона ошибки
+							errTemplate = templates.CreateErrorTemplate(lessThen, tags[1])
+							// получение названия переменной ошибки
+							errVarName = strings.Split(errTemplate, " ")[5]
+						)
+
+						// проверка на наличие уже созданной ошибки и добавление шаблона ошибки в буфер
+						templates.AddErrTemplateToBuffer(tags[0]+tags[1], errTemplate, &counter, errTemp)
+
 						// поля для шаблона
 						templFields.StructName = typeSpec.Name.String()
 						templFields.StrategyFieldName = field.Names[0].String()
@@ -162,55 +164,45 @@ func Execute() {
 						// создание шаблона
 						var te string
 						if isArr {
-							te = GreaterThanSl(strings.Split(errStr, " ")[5])
+							te = templates.GreaterThanSl(errVarName)
 						} else if isRqTag(tagsParsed) {
-							te = GreaterThanPtr(strings.Split(errStr, " ")[5])
+							te = templates.GreaterThanPtr(errVarName)
 						} else {
-							te = GreaterThan(strings.Split(errStr, " ")[5])
+							te = templates.GreaterThan(errVarName)
 						}
 						temp.Concat(te, index, isFirstConcat)
 						isFirstConcat = false
 					}
 				}
 
-				var err error
-				// создание шаблона validate.go
-				p, err := template.New("").Parse(temp.Buffer)
-				if err != nil {
-					log.Fatalln(111, err)
-				}
-
-				tValid = template.Must(p, err)
-
-				err = tValid.Execute(fileValidate, templFields)
-				if err != nil {
-					log.Fatalln("execute: ", err)
-				}
-
+				// создание и запись шаблона в validate.go
+				templateExecute("validate.go", temp.Buffer, fileValidate, templFields)
+				// очистка буфера шаблона FunctionsTemplate
 				temp.Reset()
-
 			}
 		}
 
 		return true
 	})
 
-	// создание шаблона error.go
-	e, err := template.New("").Parse(errTemp.Buffer)
-	if err != nil {
-		log.Fatalln(111, err)
-	}
-
-	var tErr *template.Template
-	tErr = template.Must(e, err)
-
-	err = tErr.Execute(fileErr, "")
-	if err != nil {
-		log.Fatalln("execute: ", err)
-	}
+	// создание и запись шаблона в errors.go
+	templateExecute("errors.go", errTemp.Buffer, fileErr, templates.TemplateFields{})
 
 	fileValidate.Close()
 	fileErr.Close()
 
 	//ast.Print(fset, astFile)
+}
+
+// templateExecute - создание и запись шаблона в файл.go.
+func templateExecute(name, buffer string, file *os.File, fields templates.TemplateFields) {
+	// создание шаблона
+	p, err := template.New(name).Parse(buffer)
+	if err != nil {
+		log.Fatalln("TemplateExecute(). Ошибка создания шаблона: ", err)
+	}
+	// запись шаблона в файл
+	if err = template.Must(p, err).Execute(file, fields); err != nil {
+		log.Fatalln("TemplateExecute(). Ошибка записи шаблона в файл.go: ", err)
+	}
 }
