@@ -93,7 +93,7 @@ func validateTagParse(tag string) [][]string {
 	return trimmed // [[rq]] или [[lt 10]]
 }
 
-func isPtr(tags [][]string) bool {
+func isRqTag(tags [][]string) bool {
 	for _, tag := range tags {
 		if tag[0] == "rq" {
 			return true

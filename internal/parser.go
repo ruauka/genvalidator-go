@@ -98,7 +98,7 @@ func Execute() {
 
 				for _, tags := range tagsParsed {
 					if isFirstConcat {
-						index = 65
+						index = 172
 					} else {
 						index = len(temp.Buffer) - 17
 					}
@@ -137,7 +137,7 @@ func Execute() {
 						var te string
 						if isArr {
 							te = LessThanSl(strings.Split(errStr, " ")[5])
-						} else if isPtr(tagsParsed) {
+						} else if isRqTag(tagsParsed) {
 							te = LessThanPtr(strings.Split(errStr, " ")[5])
 						} else {
 							te = LessThan(strings.Split(errStr, " ")[5])
@@ -163,7 +163,7 @@ func Execute() {
 						var te string
 						if isArr {
 							te = GreaterThanSl(strings.Split(errStr, " ")[5])
-						} else if isPtr(tagsParsed) {
+						} else if isRqTag(tagsParsed) {
 							te = GreaterThanPtr(strings.Split(errStr, " ")[5])
 						} else {
 							te = GreaterThan(strings.Split(errStr, " ")[5])

@@ -1,9 +1,9 @@
 package validation
 
 type Request struct {
-	Foo
-	Bar
-	Baz
+	Foo `json:"foo"`
+	Bar `json:"bar"`
+	Baz `json:"baz"`
 }
 
 type Foo struct {

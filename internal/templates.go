@@ -39,6 +39,7 @@ func HeadValidate() string {
 
 import "fmt"
 
+// Len - длина строки (в рунах).
 func Len(text string) int {
     return len([]rune(text))
 }
@@ -47,6 +48,7 @@ func Len(text string) int {
 
 func ValidateFunc() string {
 	return `
+// {{.StructName}}{{.StrategyFieldName}} - валидация поля {{.StructName}}.{{.JsonFieldName}}.
 func {{.StructName}}{{.StrategyFieldName}}(req *Request) error {
     return nil
 }
