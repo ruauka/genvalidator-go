@@ -5,10 +5,13 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"strings"
 	"text/template"
 
 	"github.com/fatih/structtag"
 )
+
+var checkMap = make(map[string]struct{})
 
 func Execute() {
 	// зачитывание и парсинг структуры в строку
@@ -21,12 +24,20 @@ func Execute() {
 		log.Fatalf("ast file parse error: %s", err)
 	}
 
-	// проверка на необходимость перезаписи файла. Перезаписывается шапка.
-	if needRewriteFile() {
-		rewriteFile()
+	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
+	if needRewriteFile("validation/validate.go") {
+		rewriteFile("validation/validate.go", HeadValidate)
 	}
 
-	file := fileOpen()
+	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
+	if needRewriteFile("validation/errors.go") {
+		rewriteFile("validation/errors.go", HeadErrors)
+	}
+
+	fileValidate := fileOpen("validation/validate.go")
+	fileErr := fileOpen("validation/errors.go")
+
+	errTemp := NewTemplateError()
 
 	ast.Inspect(astFile, func(node ast.Node) bool {
 		typeSpec, ok := node.(*ast.TypeSpec)
@@ -78,10 +89,11 @@ func Execute() {
 
 				var (
 					templFields   TemplateFields
-					t             *template.Template
+					tValid        *template.Template
 					temp          = NewTemplate()
 					isFirstConcat = true
 					index         int
+					counter       = 1
 				)
 
 				for _, tags := range tagsParsed {
@@ -92,14 +104,30 @@ func Execute() {
 					}
 					switch {
 					case len(tags) == 1 && tags[0] == "rq":
+						// проверка на наличие уже созданной ошибки
+						if _, ok := checkMap["rq"]; !ok {
+							// создание шаблона error
+							errTemp.Concat(RequireErr(), 6, counter)
+							counter++
+							checkMap["rq"] = struct{}{}
+						}
 						// поля для шаблона
 						templFields.StructName = typeSpec.Name.String()
 						templFields.StrategyFieldName = field.Names[0].String()
 						templFields.JsonFieldName = jsonName.Name
-						// создание шаблона
+						// создание шаблона validate
 						temp.Concat(Require(), index, isFirstConcat)
 						isFirstConcat = false
 					case tags[0] == "lt":
+						var errStr = createErr([]string{"GreaterThen", "больше", "greater"}, tags[1])
+						// проверка на наличие уже созданной ошибки
+						_, ok := checkMap[tags[0]+tags[1]]
+						if !ok {
+							// создание шаблона error
+							errTemp.Concat(errStr, 6, counter)
+							counter++
+							checkMap[tags[0]+tags[1]] = struct{}{}
+						}
 						// поля для шаблона
 						templFields.StructName = typeSpec.Name.String()
 						templFields.StrategyFieldName = field.Names[0].String()
@@ -108,28 +136,37 @@ func Execute() {
 						// создание шаблона
 						var te string
 						if isArr {
-							te = LessThanSl()
+							te = LessThanSl(strings.Split(errStr, " ")[5])
 						} else if isPtr(tagsParsed) {
-							te = LessThanPtr()
+							te = LessThanPtr(strings.Split(errStr, " ")[5])
 						} else {
-							te = LessThan()
+							te = LessThan(strings.Split(errStr, " ")[5])
 						}
 						temp.Concat(te, index, isFirstConcat)
 						isFirstConcat = false
 					case tags[0] == "gt":
+						var errStr = createErr([]string{"LessThen", "меньше", "less"}, tags[1])
+						// проверка на наличие уже созданной ошибки
+						_, ok := checkMap[tags[0]+tags[1]]
+						if !ok {
+							// создание шаблона error
+							errTemp.Concat(errStr, 6, counter)
+							counter++
+							checkMap[tags[0]+tags[1]] = struct{}{}
+						}
 						// поля для шаблона
 						templFields.StructName = typeSpec.Name.String()
 						templFields.StrategyFieldName = field.Names[0].String()
 						templFields.JsonFieldName = jsonName.Name
-						templFields.GreaterThanOrEq = tags[1]
+						templFields.GreaterThan = tags[1]
 						// создание шаблона
 						var te string
 						if isArr {
-							te = GreaterThanSl()
+							te = GreaterThanSl(strings.Split(errStr, " ")[5])
 						} else if isPtr(tagsParsed) {
-							te = GreaterThanPtr()
+							te = GreaterThanPtr(strings.Split(errStr, " ")[5])
 						} else {
-							te = GreaterThan()
+							te = GreaterThan(strings.Split(errStr, " ")[5])
 						}
 						temp.Concat(te, index, isFirstConcat)
 						isFirstConcat = false
@@ -137,27 +174,43 @@ func Execute() {
 				}
 
 				var err error
-				// создание шаблона
+				// создание шаблона validate.go
 				p, err := template.New("").Parse(temp.Buffer)
 				if err != nil {
 					log.Fatalln(111, err)
 				}
 
-				t = template.Must(p, err)
+				tValid = template.Must(p, err)
 
-				err = t.Execute(file, templFields)
+				err = tValid.Execute(fileValidate, templFields)
 				if err != nil {
 					log.Fatalln("execute: ", err)
 				}
 
 				temp.Reset()
+
 			}
 		}
 
 		return true
 	})
 
-	file.Close()
+	// создание шаблона error.go
+	e, err := template.New("").Parse(errTemp.Buffer)
+	if err != nil {
+		log.Fatalln(111, err)
+	}
+
+	var tErr *template.Template
+	tErr = template.Must(e, err)
+
+	err = tErr.Execute(fileErr, "")
+	if err != nil {
+		log.Fatalln("execute: ", err)
+	}
+
+	fileValidate.Close()
+	fileErr.Close()
 
 	//ast.Print(fset, astFile)
 }

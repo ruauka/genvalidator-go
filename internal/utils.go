@@ -8,7 +8,7 @@ import (
 )
 
 func readStruct() string {
-	f, err := os.Open("example.go")
+	f, err := os.Open("validation/request.go")
 	if err != nil {
 		panic(err)
 	}
@@ -21,9 +21,9 @@ func readStruct() string {
 	return b.String()
 }
 
-func fileOpen() *os.File {
+func fileOpen(path string) *os.File {
 	// открытие файла в режиме дозаписывания
-	file, err := os.OpenFile("validate.go", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("os.OpenFile err: %s", err)
 	}
@@ -31,8 +31,8 @@ func fileOpen() *os.File {
 	return file
 }
 
-func needRewriteFile() bool {
-	file, err := os.Stat("validate.go")
+func needRewriteFile(path string) bool {
+	file, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return true
@@ -47,8 +47,8 @@ func needRewriteFile() bool {
 }
 
 // rewriteFile - перезапись файла.
-func rewriteFile() {
-	err := os.WriteFile("validate.go", []byte(Head()), 0644)
+func rewriteFile(path string, fn func() string) {
+	err := os.WriteFile(path, []byte(fn()), 0644)
 	if err != nil {
 		log.Fatalf("os.WriteFile err: %s", err)
 	}

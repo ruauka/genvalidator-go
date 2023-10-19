@@ -1,6 +1,9 @@
 package internal
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type Template struct {
 	Buffer string
@@ -28,11 +31,11 @@ type TemplateFields struct {
 	StrategyFieldName string
 	JsonFieldName     string
 	LessThan          string
-	GreaterThanOrEq   string
+	GreaterThan       string
 }
 
-func Head() string {
-	return `package main
+func HeadValidate() string {
+	return `package validation
 
 import "fmt"
 
@@ -54,65 +57,53 @@ func Require() string {
 	return `
     // require (rq)
     if req.{{.StructName}}.{{.StrategyFieldName}} == nil {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field is require")
+        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %w", ErrRequired)
     }
 `
 }
 
-func LessThan() string {
-	return `
-    // less than (lt)
-    if Len(req.{{.StructName}}.{{.StrategyFieldName}}) > {{.LessThan}} {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be less than {{.LessThan}}")
-    }
-`
+func LessThan(errStr string) string {
+	return fmt.Sprintf("\n    "+
+		"// less than (lt)\n    "+
+		"if Len(req.{{.StructName}}.{{.StrategyFieldName}}) > {{.LessThan}} {\n"+
+		"        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
 }
 
-func LessThanPtr() string {
-	return `
-    // less than (lt)
-    if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) > {{.LessThan}} {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be less than {{.LessThan}}")
-    }
-`
+func LessThanPtr(errStr string) string {
+	return fmt.Sprintf("\n    "+
+		"// less than (lt)\n    "+
+		"if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) > {{.LessThan}} {\n"+
+		"        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
 }
 
-func LessThanSl() string {
-	return `
-    // less than (lt)
-    for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {
-        if Len(val) > {{.LessThan}} {
-            return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s, err in %dth array index", "field must be less than {{.LessThan}}", idx)
-        }
-    }
-`
+func LessThanSl(errStr string) string {
+	return fmt.Sprintf("\n    "+
+		"// less than (lt)\n    "+
+		"for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {"+
+		"\n        if Len(val) > {{.LessThan}} {"+
+		"\n            return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w, err in %%dth array index\", %s, idx)\n        }\n    }\n", errStr)
 }
 
-func GreaterThan() string {
-	return `
-    // greater than (gt)
-    if Len(req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThanOrEq}} {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be greater than {{.GreaterThanOrEq}}")
-    }
-`
+func GreaterThan(errStr string) string {
+	return fmt.Sprintf("\n    "+
+		"// greater than (gt)\n    "+
+		"if Len(req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThan}}"+
+		" {\n        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
 }
 
-func GreaterThanPtr() string {
-	return `
-    // greater than (gt)
-    if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThanOrEq}} {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be greater than {{.GreaterThanOrEq}}")
-    }
-`
+func GreaterThanPtr(errStr string) string {
+	return fmt.Sprintf("\n    "+
+		"// greater than (gt)\n    "+
+		"if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThan}}"+
+		" {\n        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
 }
 
-func GreaterThanSl() string {
-	return `
-    // greater than (gt)
-    for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {
-        if Len(val) < {{.GreaterThanOrEq}} {
-            return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s, err in %dth array index", "field must be greater than {{.GreaterThanOrEq}}", idx)
-        }
-    }
-`
+func GreaterThanSl(errStr string) string {
+	return fmt.Sprintf(
+		"\n    "+
+			"// greater than (gt)\n    "+
+			"for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {"+
+			"\n        if Len(val) < {{.GreaterThan}} {\n"+
+			"            return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w, err in %%dth array index\", %s, idx)\n        }\n    }\n", errStr,
+	)
 }
