@@ -26,12 +26,51 @@ func (f *FunctionsTemplate) Reset() {
 	f.Buffer = ValidateFunc()
 }
 
+func CreateLtFunctionTemplate(isArr bool, errVarName string, tagsParsed [][]string) string {
+	switch {
+	case isArr:
+		return LessThanSl(errVarName)
+	case isRqTag(tagsParsed):
+		return LessThanPtr(errVarName)
+	default:
+		return LessThan(errVarName)
+	}
+}
+
+func CreateGtFunctionTemplate(isArr bool, errVarName string, tagsParsed [][]string) string {
+	switch {
+	case isArr:
+		return GreaterThanSl(errVarName)
+	case isRqTag(tagsParsed):
+		return GreaterThanPtr(errVarName)
+	default:
+		return GreaterThan(errVarName)
+	}
+}
+
+func isRqTag(tags [][]string) bool {
+	for _, tag := range tags {
+		if tag[0] == "rq" {
+			return true
+		}
+	}
+
+	return false
+}
+
 type TemplateFields struct {
 	StructName        string
 	StrategyFieldName string
 	JsonFieldName     string
 	LessThan          string
 	GreaterThan       string
+}
+
+// FieldsFill - заполнение полей для шаблона "функции".
+func (t *TemplateFields) FieldsFill(structN, fieldN, jsonN string) {
+	t.StructName = structN
+	t.StrategyFieldName = fieldN
+	t.JsonFieldName = jsonN
 }
 
 func HeadValidate() string {
