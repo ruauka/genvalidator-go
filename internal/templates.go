@@ -1,4 +1,4 @@
-package templates
+package internal
 
 import "strings"
 
@@ -77,20 +77,42 @@ func LessThanPtr() string {
 `
 }
 
-func GreaterThanOrEq() string {
+func LessThanSl() string {
 	return `
-    // greater than or eq (gte)
-    if Len(req.{{.StructName}}.{{.StrategyFieldName}}) <= {{.GreaterThanOrEq}} {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be greater than or eq {{.GreaterThanOrEq}}")
+    // less than (lt)
+    for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {
+        if Len(val) > {{.LessThan}} {
+            return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s, err in %dth array index", "field must be less than {{.LessThan}}", idx)
+        }
     }
 `
 }
 
-func GreaterThanOrEqPtr() string {
+func GreaterThan() string {
 	return `
-    // greater than or eq (gte)
-    if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) <= {{.GreaterThanOrEq}} {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be greater than or eq {{.GreaterThanOrEq}}")
+    // greater than (gt)
+    if Len(req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThanOrEq}} {
+        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be greater than {{.GreaterThanOrEq}}")
+    }
+`
+}
+
+func GreaterThanPtr() string {
+	return `
+    // greater than (gt)
+    if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThanOrEq}} {
+        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s", "field must be greater than {{.GreaterThanOrEq}}")
+    }
+`
+}
+
+func GreaterThanSl() string {
+	return `
+    // greater than (gt)
+    for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {
+        if Len(val) < {{.GreaterThanOrEq}} {
+            return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %s, err in %dth array index", "field must be greater than {{.GreaterThanOrEq}}", idx)
+        }
     }
 `
 }

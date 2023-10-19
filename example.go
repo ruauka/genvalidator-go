@@ -18,6 +18,7 @@ type Bar struct {
 }
 
 type Baz struct {
-	Field5 string  `json:"field_5" validate:"gte=2"`
-	Field6 *string `json:"field_6" validate:"rq, gte=2, lt=30"`
+	Field5 string   `json:"field_5" validate:"gt=2"`
+	Field6 *string  `json:"field_6" validate:"rq, gt=2, lt=30"`
+	Field7 []string `json:"field_7" validate:"rq, gt=1, lt=10"`
 }

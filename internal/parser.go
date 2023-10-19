@@ -8,8 +8,6 @@ import (
 	"text/template"
 
 	"github.com/fatih/structtag"
-
-	"genvalidator/internal/templates"
 )
 
 func Execute() {
@@ -47,6 +45,15 @@ func Execute() {
 			if field.Tag == nil {
 				continue
 			}
+
+			// проверка на слайс (флаг слайса)
+			var isArr bool
+			// проверка на слайс
+			_, ok := field.Type.(*ast.ArrayType)
+			if ok {
+				isArr = true
+			}
+
 			// парсингвсех тегов
 			tags, err := structtag.Parse(field.Tag.Value[1 : len(field.Tag.Value)-1])
 			if err != nil {
@@ -70,9 +77,9 @@ func Execute() {
 				// [[rq] [lt 10]]
 
 				var (
-					templFields   templates.TemplateFields
+					templFields   TemplateFields
 					t             *template.Template
-					temp          = templates.NewTemplate()
+					temp          = NewTemplate()
 					isFirstConcat = true
 					index         int
 				)
@@ -90,7 +97,7 @@ func Execute() {
 						templFields.StrategyFieldName = field.Names[0].String()
 						templFields.JsonFieldName = jsonName.Name
 						// создание шаблона
-						temp.Concat(templates.Require(), index, isFirstConcat)
+						temp.Concat(Require(), index, isFirstConcat)
 						isFirstConcat = false
 					case tags[0] == "lt":
 						// поля для шаблона
@@ -100,14 +107,16 @@ func Execute() {
 						templFields.LessThan = tags[1]
 						// создание шаблона
 						var te string
-						if isPtr(tagsParsed) {
-							te = templates.LessThanPtr()
+						if isArr {
+							te = LessThanSl()
+						} else if isPtr(tagsParsed) {
+							te = LessThanPtr()
 						} else {
-							te = templates.LessThan()
+							te = LessThan()
 						}
 						temp.Concat(te, index, isFirstConcat)
 						isFirstConcat = false
-					case tags[0] == "gte":
+					case tags[0] == "gt":
 						// поля для шаблона
 						templFields.StructName = typeSpec.Name.String()
 						templFields.StrategyFieldName = field.Names[0].String()
@@ -115,10 +124,12 @@ func Execute() {
 						templFields.GreaterThanOrEq = tags[1]
 						// создание шаблона
 						var te string
-						if isPtr(tagsParsed) {
-							te = templates.GreaterThanOrEqPtr()
+						if isArr {
+							te = GreaterThanSl()
+						} else if isPtr(tagsParsed) {
+							te = GreaterThanPtr()
 						} else {
-							te = templates.GreaterThanOrEq()
+							te = GreaterThan()
 						}
 						temp.Concat(te, index, isFirstConcat)
 						isFirstConcat = false

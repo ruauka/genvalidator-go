@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"strings"
-
-	"genvalidator/internal/templates"
 )
 
 func readStruct() string {
@@ -50,7 +48,7 @@ func needRewriteFile() bool {
 
 // rewriteFile - перезапись файла.
 func rewriteFile() {
-	err := os.WriteFile("validate.go", []byte(templates.Head()), 0644)
+	err := os.WriteFile("validate.go", []byte(Head()), 0644)
 	if err != nil {
 		log.Fatalf("os.WriteFile err: %s", err)
 	}
