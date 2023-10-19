@@ -2,10 +2,12 @@ package validation
 
 import "fmt"
 
+// Len - длина строки (в рунах).
 func Len(text string) int {
 	return len([]rune(text))
 }
 
+// FooField2 - валидация поля Foo.field_2.
 func FooField2(req *Request) error {
 	// require (rq)
 	if req.Foo.Field2 == nil {
@@ -15,6 +17,7 @@ func FooField2(req *Request) error {
 	return nil
 }
 
+// FooBar - валидация поля Foo.bar.
 func FooBar(req *Request) error {
 	// require (rq)
 	if req.Foo.Bar == nil {
@@ -24,6 +27,7 @@ func FooBar(req *Request) error {
 	return nil
 }
 
+// BarField3 - валидация поля Bar.field_3.
 func BarField3(req *Request) error {
 	// less than (lt)
 	if Len(req.Bar.Field3) > 10 {
@@ -33,6 +37,7 @@ func BarField3(req *Request) error {
 	return nil
 }
 
+// BarField4 - валидация поля Bar.field_4.
 func BarField4(req *Request) error {
 	// require (rq)
 	if req.Bar.Field4 == nil {
@@ -46,6 +51,7 @@ func BarField4(req *Request) error {
 	return nil
 }
 
+// BazField5 - валидация поля Baz.field_5.
 func BazField5(req *Request) error {
 	// greater than (gt)
 	if Len(req.Baz.Field5) < 2 {
@@ -55,6 +61,7 @@ func BazField5(req *Request) error {
 	return nil
 }
 
+// BazField6 - валидация поля Baz.field_6.
 func BazField6(req *Request) error {
 	// require (rq)
 	if req.Baz.Field6 == nil {
@@ -72,6 +79,7 @@ func BazField6(req *Request) error {
 	return nil
 }
 
+// BazField7 - валидация поля Baz.field_7.
 func BazField7(req *Request) error {
 	// require (rq)
 	if req.Baz.Field7 == nil {
