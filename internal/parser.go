@@ -15,34 +15,37 @@ import (
 )
 
 var (
-	greaterThen = []string{"GreaterThen", "больше", "greater"}
-	lessThen    = []string{"LessThen", "меньше", "less"}
-	errTemplate string
-	errVarName  string
+	greaterThen        = []string{"GreaterThen", "больше", "greater"}
+	lessThen           = []string{"LessThen", "меньше", "less"}
+	requestFilePath    = "validation/request.go"
+	validationFilePath = "validation/validate.go"
+	errorsFilePath     = "validation/errors.go"
+	errTemplate        string
+	errVarName         string
 )
 
 func Execute() {
 	// зачитывание и парсинг файла со структурами в строку
-	s := readStruct()
+	s := readStruct(requestFilePath)
 
 	fs := token.NewFileSet()
-
+	// дерево ast
 	astFile, err := parser.ParseFile(fs, "", s, parser.ParseComments)
 	if err != nil {
 		log.Fatalf("ast file parse error: %s", err)
 	}
 
 	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
-	if needRewriteFile("validation/validate.go") {
-		rewriteFile("validation/validate.go", templates.HeadValidate)
+	if needRewriteFile(validationFilePath) {
+		rewriteFile(validationFilePath, templates.HeadValidate)
 	}
-	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
-	if needRewriteFile("validation/errors.go") {
-		rewriteFile("validation/errors.go", templates.HeadErrors)
+	// проверка на необходимость перезаписи файла errors.go. Перезаписывается шапка.
+	if needRewriteFile(errorsFilePath) {
+		rewriteFile(errorsFilePath, templates.HeadErrors)
 	}
 	// открытие файлов на дозапись
-	fileValidate := fileOpen("validation/validate.go")
-	fileErr := fileOpen("validation/errors.go")
+	fileValidate := fileOpenAppendMode(validationFilePath)
+	fileErr := fileOpenAppendMode(errorsFilePath)
 	// создание буффера для шаблона "ошибка"
 	errBuffer := templates.NewTemplateError()
 
@@ -79,16 +82,16 @@ func Execute() {
 			if err != nil {
 				log.Fatalf("tags.Get(\"json\"). Ошибка получения названия поля из json: %s", err)
 			}
-
+			// получение тэгов
 			for _, tag := range tags.Tags() {
 				// фильтр по тегу "validate"
 				if tag.Key != "validate" {
 					continue
 				}
-				// парсинг правил тега "validate" в [][]string | [[rq]] | [[rq] [lt 10]]
-				rulesParsed := validateTagParse(tag.Value())
 
 				var (
+					// парсинг правил тега "validate" в [][]string | [[rq]] | [[rq] [lt 10]]
+					rulesParsed = validateTagParse(tag.Value())
 					// поля для шаблона "функция"
 					funcFields templates.TemplateFields
 					// создание буффера для шаблона "функция"
@@ -99,9 +102,10 @@ func Execute() {
 					counter = 1
 				)
 
+				// палучение правил тега
 				for _, rules := range rulesParsed {
-					// расчет индекса для взятия подстроки для конкатенации буффера
-					index := indexConcat(isFirstConcat, funcBuffer.Buffer)
+					// расчет отступа для взятия подстроки для конкатенации буффера
+					indent := indentConcat(isFirstConcat, funcBuffer.Buffer)
 					// основная логика
 					switch {
 					// обработка правила "rq"
@@ -114,7 +118,7 @@ func Execute() {
 						// заполнение полей для шаблона "функции"
 						funcFields.FieldsFill(typeSpec.Name.String(), field.Names[0].String(), jsonFieldName.Name)
 						// добавление шаблона "функции" в буфер
-						funcBuffer.Concat(templates.Require(), index, isFirstConcat)
+						funcBuffer.BufferConcat(templates.Require(), indent, isFirstConcat)
 						isFirstConcat = false
 					// обработка правила "lt"
 					case rules[0] == "lt":
@@ -132,7 +136,7 @@ func Execute() {
 						// создание шаблона "функции"
 						funcTemplate := templates.CreateLtFunctionTemplate(isArr, errVarName, rulesParsed)
 						// добавление шаблона "функции" в буфер
-						funcBuffer.Concat(funcTemplate, index, isFirstConcat)
+						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcat)
 						isFirstConcat = false
 					// обработка правила "gt"
 					case rules[0] == "gt":
@@ -150,13 +154,13 @@ func Execute() {
 						// создание шаблона "функции"
 						funcTemplate := templates.CreateGtFunctionTemplate(isArr, errVarName, rulesParsed)
 						// добавление шаблона "функции" в буфер
-						funcBuffer.Concat(funcTemplate, index, isFirstConcat)
+						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcat)
 						isFirstConcat = false
 					}
 				}
 				// создание и запись шаблона "функции" в validate.go
 				templateExecute("validate.go", funcBuffer.Buffer, fileValidate, funcFields)
-				// очистка буфера шаблона "функции" FunctionsTemplate
+				// очистка буфера шаблона "функции" FunctionTemplate
 				funcBuffer.Reset()
 			}
 		}
@@ -174,8 +178,8 @@ func Execute() {
 	//ast.Print(fs, astFile)
 }
 
-// indexConcat - расчет индекса для взятия подстроки для конкатинации буффера.
-func indexConcat(isFirstConcat bool, buffer string) int {
+// indentConcat - расчет отступа для взятия подстроки для конкатинации буффера.
+func indentConcat(isFirstConcat bool, buffer string) int {
 	if isFirstConcat {
 		return 172
 	}

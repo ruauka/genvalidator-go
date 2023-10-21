@@ -5,33 +5,40 @@ import (
 	"strings"
 )
 
+// отступ для конкатенации
 const (
-	errIndex = 6
+	errIndent = 6
 )
 
+// мапа для проверки уже имеющийся "ошибки"
 var (
-	errTemplates = make(map[string]struct{})
+	isErrExists = make(map[string]struct{})
 )
 
-type TemplateError struct {
+// ErrorTemplate - структура шаблона "ошибки".
+type ErrorTemplate struct {
 	Buffer string
 }
 
-func NewTemplateError() *TemplateError {
-	return &TemplateError{Buffer: Vars()}
+// NewTemplateError - конструктор с пердзаполненным шаблоном.
+func NewTemplateError() *ErrorTemplate {
+	return &ErrorTemplate{Buffer: Vars()}
 }
 
-func (t *TemplateError) Concat(template string, index int, counter int) {
+// BufferConcat - добавление шаблона в буффер (конкатенация).
+func (t *ErrorTemplate) BufferConcat(template string, indent int, counter int) {
+	// первая конкатенация
 	if counter == 1 {
-		t.Buffer = t.Buffer[:index] + template + t.Buffer[index+1:]
+		t.Buffer = t.Buffer[:indent] + template + t.Buffer[indent+1:]
 		return
 	}
+	// вторая конкатенация
 	if counter == 2 {
-		t.Buffer = strings.TrimSpace(t.Buffer[:len(t.Buffer)-index]) + template + strings.TrimSpace(t.Buffer[len(t.Buffer)-index+1:])
+		t.Buffer = strings.TrimSpace(t.Buffer[:len(t.Buffer)-indent]) + template + strings.TrimSpace(t.Buffer[len(t.Buffer)-indent+1:])
 		return
 	}
-
-	t.Buffer = strings.TrimSpace(t.Buffer[:len(t.Buffer)-index]) + template + strings.TrimSpace(t.Buffer[len(t.Buffer)-index-1:])
+	// последующие конкатенации
+	t.Buffer = strings.TrimSpace(t.Buffer[:len(t.Buffer)-indent]) + template + strings.TrimSpace(t.Buffer[len(t.Buffer)-indent-1:])
 }
 
 // CreateErrorTemplate - создание шаблона ошибки.
@@ -47,16 +54,18 @@ func CreateErrorTemplate(prefix []string, val string) string {
 	)
 }
 
-func AddErrTemplateToBuffer(key, errTemplate string, counter *int, t *TemplateError) {
+// AddErrTemplateToBuffer - проверка наличия уже созданной "ошибки" и добавление новой в буффер.
+func AddErrTemplateToBuffer(key, errTemplate string, counter *int, t *ErrorTemplate) {
 	// проверка на наличие уже созданной ошибки
-	if _, ok := errTemplates[key]; !ok {
+	if _, ok := isErrExists[key]; !ok {
 		// создание шаблона error
-		t.Concat(errTemplate, errIndex, *counter)
-		errTemplates[key] = struct{}{}
+		t.BufferConcat(errTemplate, errIndent, *counter)
+		isErrExists[key] = struct{}{}
 		*counter++
 	}
 }
 
+// HeadErrors - шаблон начала файла.
 func HeadErrors() string {
 	return `package validation
 
@@ -64,6 +73,7 @@ import "errors"
 `
 }
 
+// Vars - объявление "ошибок".
 func Vars() string {
 	return `
 var (
@@ -71,6 +81,7 @@ var (
 `
 }
 
+// RequireErr - шаблон "ошибки" обязательности поля.
 func RequireErr() string {
 	return `
     // ErrRequired - обязательное поле.

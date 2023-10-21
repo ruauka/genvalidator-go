@@ -7,8 +7,9 @@ import (
 	"strings"
 )
 
-func readStruct() string {
-	f, err := os.Open("validation/request.go")
+// readStruct - зачитывание структуры из файла в строчку.
+func readStruct(path string) string {
+	f, err := os.Open(path)
 	if err != nil {
 		panic(err)
 	}
@@ -21,7 +22,8 @@ func readStruct() string {
 	return b.String()
 }
 
-func fileOpen(path string) *os.File {
+// fileOpenAppendMode - открытие файла в режиме на дозапись.
+func fileOpenAppendMode(path string) *os.File {
 	// открытие файла в режиме дозаписывания
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -31,14 +33,16 @@ func fileOpen(path string) *os.File {
 	return file
 }
 
+// needRewriteFile - проверка на необходимость перезаписи файла.go.
 func needRewriteFile(path string) bool {
 	file, err := os.Stat(path)
 	if err != nil {
+		// проверка наличия
 		if os.IsNotExist(err) {
 			return true
 		}
 	}
-
+	// проверяет пустой ли файл
 	if file.Size() != 0 {
 		return true
 	}
@@ -48,9 +52,7 @@ func needRewriteFile(path string) bool {
 
 // rewriteFile - перезапись файла.
 func rewriteFile(path string, fn func() string) {
-	err := os.WriteFile(path, []byte(fn()), 0644)
-	if err != nil {
-		log.Fatalf("os.WriteFile err: %s", err)
+	if err := os.WriteFile(path, []byte(fn()), 0644); err != nil {
+		log.Fatalf("rewriteFile err: %s", err)
 	}
-
 }
