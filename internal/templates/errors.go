@@ -10,11 +10,6 @@ const (
 	errIndent = 6
 )
 
-// мапа для проверки уже имеющийся "ошибки"
-var (
-	isErrExists = make(map[string]struct{})
-)
-
 // ErrorTemplate - структура шаблона "ошибки".
 type ErrorTemplate struct {
 	Buffer string
@@ -26,19 +21,15 @@ func NewTemplateError() *ErrorTemplate {
 }
 
 // BufferConcat - добавление шаблона в буффер (конкатенация).
-func (t *ErrorTemplate) BufferConcat(template string, indent int, counter int) {
+func (e *ErrorTemplate) BufferConcat(template string, indent int, isFirstConcat bool) {
 	// первая конкатенация
-	if counter == 1 {
-		t.Buffer = t.Buffer[:indent] + template + t.Buffer[indent+1:]
+	if isFirstConcat {
+		e.Buffer = e.Buffer[:indent] + template + e.Buffer[indent+1:]
 		return
 	}
-	// вторая конкатенация
-	if counter == 2 {
-		t.Buffer = strings.TrimSpace(t.Buffer[:len(t.Buffer)-indent]) + template + strings.TrimSpace(t.Buffer[len(t.Buffer)-indent+1:])
-		return
-	}
+
 	// последующие конкатенации
-	t.Buffer = strings.TrimSpace(t.Buffer[:len(t.Buffer)-indent]) + template + strings.TrimSpace(t.Buffer[len(t.Buffer)-indent-1:])
+	e.Buffer = strings.TrimSpace(e.Buffer[:len(e.Buffer)-indent+3]) + template + strings.TrimSpace(e.Buffer[len(e.Buffer)-indent+4:])
 }
 
 // CreateErrorTemplate - создание шаблона ошибки.
@@ -54,15 +45,11 @@ func CreateErrorTemplate(prefix []string, val string) string {
 	)
 }
 
-// AddErrTemplateToBuffer - проверка наличия уже созданной "ошибки" и добавление новой в буффер.
-func AddErrTemplateToBuffer(key, errTemplate string, counter *int, t *ErrorTemplate) {
-	// проверка на наличие уже созданной ошибки
-	if _, ok := isErrExists[key]; !ok {
-		// создание шаблона error
-		t.BufferConcat(errTemplate, errIndent, *counter)
-		isErrExists[key] = struct{}{}
-		*counter++
-	}
+// AddErrTemplateToBuffer - добавление новой "ошибки" в буффер.
+func AddErrTemplateToBuffer(isErrExists map[string]struct{}, key, errTemplate string, isFirstConcat bool, t *ErrorTemplate) {
+	// создание шаблона error
+	t.BufferConcat(errTemplate, errIndent, isFirstConcat)
+	isErrExists[key] = struct{}{}
 }
 
 // HeadErrors - шаблон начала файла.

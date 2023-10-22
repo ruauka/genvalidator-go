@@ -12,7 +12,7 @@ type FunctionTemplate struct {
 
 // NewFunctionsTemplate - конструктор с пердзаполненным шаблоном.
 func NewFunctionsTemplate() *FunctionTemplate {
-	return &FunctionTemplate{Buffer: FuncName()}
+	return &FunctionTemplate{Buffer: RuleFuncName()}
 }
 
 // BufferConcat - добавление шаблона в буффер (конкатенация).
@@ -28,7 +28,7 @@ func (f *FunctionTemplate) BufferConcat(template string, indent int, isFirstConc
 
 // Reset - сброс буфера для создания новой функции валидации поля. Предзаполнение шапкой функции.
 func (f *FunctionTemplate) Reset() {
-	f.Buffer = FuncName()
+	f.Buffer = RuleFuncName()
 }
 
 // CreateLtFunctionTemplate - выбор шаблона lt.
@@ -69,6 +69,7 @@ func isRqRule(tags [][]string) bool {
 // TemplateFields - структура полей для подстановки в шаблон "функции"
 type TemplateFields struct {
 	StructName        string
+	FuncName          string
 	StrategyFieldName string
 	JsonFieldName     string
 	LessThan          string
@@ -95,8 +96,8 @@ func Len(text string) int {
 `
 }
 
-// FuncName - шапка "функции".
-func FuncName() string {
+// RuleFuncName - шапка "функции".
+func RuleFuncName() string {
 	return `
 // {{.StructName}}{{.StrategyFieldName}} - валидация поля {{.StructName}}.{{.JsonFieldName}}.
 func {{.StructName}}{{.StrategyFieldName}}(req *Request) error {
@@ -166,3 +167,15 @@ func GreaterThanSl(errStr string) string {
 			"            return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w, err in %%dth array index\", %s, idx)\n        }\n    }\n", errStr,
 	)
 }
+
+//// Validate - валидация входящего запроса.
+//func Validate(req *Request) error {
+//	if err := FooField2(req); err != nil {
+//		return fmt.Errorf("validate error: %w", err)
+//	}
+//	if err := FooBar(req); err != nil {
+//		return fmt.Errorf("validate error: %w", err)
+//	}
+//
+//	return nil
+//}

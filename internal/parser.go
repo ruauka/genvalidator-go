@@ -24,6 +24,13 @@ var (
 	errVarName         string
 )
 
+var (
+	// мапа для проверки уже имеющейся "ошибки"
+	isErrExists = make(map[string]struct{})
+	// мапа для проверки уже имеющегося вызова функции правил
+	isFuncCall = make(map[string]struct{})
+)
+
 func Execute() {
 	// зачитывание и парсинг файла со структурами в строку
 	s := readStruct(requestFilePath)
@@ -48,6 +55,9 @@ func Execute() {
 	fileErr := fileOpenAppendMode(errorsFilePath)
 	// создание буффера для шаблона "ошибка"
 	errBuffer := templates.NewTemplateError()
+
+	// создание буффера для шаблона функции "Validate"
+	invokeBuffer := templates.NewInvokeTemplate()
 
 	// проход по нодам дерева ast
 	ast.Inspect(astFile, func(node ast.Node) bool {
@@ -97,38 +107,61 @@ func Execute() {
 					// создание буффера для шаблона "функция"
 					funcBuffer = templates.NewFunctionsTemplate()
 					// флаг для конкатенации буффера "функция"
-					isFirstConcat = true
-					// счетчик для конкатенации буффера "ошибка"
-					counter = 1
+					isFirstConcatFunc = true
+					// флаг для конкатенации буффера "ошибка"
+					isFirstConcatErr = true
+					// флаг для конкатенации буффера функции "Validate"
+					isFirstConcatValidation = true
+					// название валидирующей функции
+					keyFuncCall string
+					// название ошибки
+					keyErrTemplate string
 				)
 
 				// палучение правил тега
 				for _, rules := range rulesParsed {
 					// расчет отступа для взятия подстроки для конкатенации буффера
-					indent := indentConcat(isFirstConcat, funcBuffer.Buffer)
+					indent := indentConcat(isFirstConcatFunc, funcBuffer.Buffer)
 					// основная логика
 					switch {
 					// обработка правила "rq"
 					case len(rules) == 1 && rules[0] == "rq":
 						// создание шаблона "ошибки"
 						errTemplate := templates.RequireErr()
+						// проверка на наличие уже созданной ошибки
+						keyErrTemplate := "rq"
+						if _, ok := isErrExists[keyErrTemplate]; !ok {
+							// добавление шаблона ошибки в буфер
+							templates.AddErrTemplateToBuffer(isErrExists, keyErrTemplate, errTemplate, isFirstConcatErr, errBuffer)
+							isFirstConcatErr = false
+						}
 
-						// проверка на наличие уже созданной "ошибки"  и добавление шаблона "ошибки"  в буфер
-						templates.AddErrTemplateToBuffer("rq", errTemplate, &counter, errBuffer)
 						// заполнение полей для шаблона "функции"
 						funcFields.FieldsFill(typeSpec.Name.String(), field.Names[0].String(), jsonFieldName.Name)
 						// добавление шаблона "функции" в буфер
-						funcBuffer.BufferConcat(templates.Require(), indent, isFirstConcat)
-						isFirstConcat = false
+						funcBuffer.BufferConcat(templates.Require(), indent, isFirstConcatFunc)
+						isFirstConcatFunc = false
+
+						// проверка на наличие уже вызванной функции в шаблоне "Validate"
+						keyFuncCall = typeSpec.Name.String() + field.Names[0].String()
+						if _, ok := isFuncCall[keyFuncCall]; !ok {
+							// добавление функции проверки в шаблон "Validate"
+							templates.AddFuncCallToBuffer(isFuncCall, keyFuncCall, templates.CallingFuncTemplate(keyFuncCall), isFirstConcatValidation, invokeBuffer)
+							isFirstConcatValidation = false
+						}
 					// обработка правила "lt"
 					case rules[0] == "lt":
 						// создание шаблона "ошибки"
 						errTemplate = templates.CreateErrorTemplate(greaterThen, rules[1])
 						// получение названия переменной "ошибки"
 						errVarName = strings.Split(errTemplate, " ")[5]
-
-						// проверка на наличие уже созданной "ошибки"  и добавление шаблона ошибки в буфер
-						templates.AddErrTemplateToBuffer(rules[0]+rules[1], errTemplate, &counter, errBuffer)
+						// проверка на наличие уже созданной ошибки
+						keyErrTemplate = rules[0] + rules[1]
+						if _, ok := isErrExists[keyErrTemplate]; !ok {
+							// добавление шаблона ошибки в буфер
+							templates.AddErrTemplateToBuffer(isErrExists, keyErrTemplate, errTemplate, isFirstConcatErr, errBuffer)
+							isFirstConcatErr = false
+						}
 
 						// заполнение полей для шаблона "функции"
 						funcFields.FieldsFill(typeSpec.Name.String(), field.Names[0].String(), jsonFieldName.Name)
@@ -136,17 +169,29 @@ func Execute() {
 						// создание шаблона "функции"
 						funcTemplate := templates.CreateLtFunctionTemplate(isArr, errVarName, rulesParsed)
 						// добавление шаблона "функции" в буфер
-						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcat)
-						isFirstConcat = false
+						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcatFunc)
+						isFirstConcatFunc = false
+
+						// проверка на наличие уже вызванной функции в шаблоне "Validate"
+						keyFuncCall = typeSpec.Name.String() + field.Names[0].String()
+						if _, ok := isFuncCall[keyFuncCall]; !ok {
+							// добавление функции проверки в шаблон "Validate"
+							templates.AddFuncCallToBuffer(isFuncCall, keyFuncCall, templates.CallingFuncTemplate(keyFuncCall), isFirstConcatValidation, invokeBuffer)
+							isFirstConcatValidation = false
+						}
 					// обработка правила "gt"
 					case rules[0] == "gt":
 						// создание шаблона "ошибки"
 						errTemplate = templates.CreateErrorTemplate(lessThen, rules[1])
 						// получение названия переменной "ошибки"
 						errVarName = strings.Split(errTemplate, " ")[5]
-
-						// проверка на наличие уже созданной "ошибки"  и добавление шаблона "ошибки" в буфер
-						templates.AddErrTemplateToBuffer(rules[0]+rules[1], errTemplate, &counter, errBuffer)
+						// проверка на наличие уже созданной ошибки
+						keyErrTemplate = rules[0] + rules[1]
+						if _, ok := isErrExists[keyErrTemplate]; !ok {
+							// добавление шаблона ошибки в буфер
+							templates.AddErrTemplateToBuffer(isErrExists, keyErrTemplate, errTemplate, isFirstConcatErr, errBuffer)
+							isFirstConcatErr = false
+						}
 
 						// заполнение полей для шаблона "функции"
 						funcFields.FieldsFill(typeSpec.Name.String(), field.Names[0].String(), jsonFieldName.Name)
@@ -154,8 +199,16 @@ func Execute() {
 						// создание шаблона "функции"
 						funcTemplate := templates.CreateGtFunctionTemplate(isArr, errVarName, rulesParsed)
 						// добавление шаблона "функции" в буфер
-						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcat)
-						isFirstConcat = false
+						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcatFunc)
+						isFirstConcatFunc = false
+
+						// проверка на наличие уже вызванной функции в шаблоне "Validate"
+						keyFuncCall = typeSpec.Name.String() + field.Names[0].String()
+						if _, ok := isFuncCall[keyFuncCall]; !ok {
+							// добавление функции проверки в шаблон "Validate"
+							templates.AddFuncCallToBuffer(isFuncCall, keyFuncCall, templates.CallingFuncTemplate(keyFuncCall), isFirstConcatValidation, invokeBuffer)
+							isFirstConcatValidation = false
+						}
 					}
 				}
 				// создание и запись шаблона "функции" в validate.go
@@ -169,6 +222,8 @@ func Execute() {
 		return true
 	})
 
+	// создание и запись шаблона функции "Validate" в validate.go
+	templateExecute("validate.go", invokeBuffer.Buffer, fileValidate, templates.TemplateFields{})
 	// создание и запись шаблона "ошибки" в errors.go
 	templateExecute("errors.go", errBuffer.Buffer, fileErr, templates.TemplateFields{})
 
@@ -201,9 +256,9 @@ func templateExecute(name, buffer string, file *os.File, fields templates.Templa
 }
 
 // validateTagParse - парсинг правил тега "validate".
-func validateTagParse(tag string) [][]string {
+func validateTagParse(rules string) [][]string {
 	var (
-		splited = strings.Split(tag, ",")
+		splited = strings.Split(rules, ",")
 		trimmed = make([][]string, len(splited))
 	)
 
@@ -215,7 +270,7 @@ func validateTagParse(tag string) [][]string {
 	}
 
 	// постановка тега "rq" на первое место, на случай если последовательность правил начинается не с "rq"
-	if len(trimmed) > 1 {
+	if rqCheck(trimmed) {
 		var (
 			trimmedSorted = make([][]string, 0, len(trimmed))
 			index         int
@@ -236,4 +291,15 @@ func validateTagParse(tag string) [][]string {
 	}
 
 	return trimmed // [[rq]] или [[lt 10]]
+}
+
+// rqCheck - проверка наличия правила "rq".
+func rqCheck(rules [][]string) bool {
+	for _, sl := range rules {
+		if len(sl) == 1 && sl[0] == "rq" {
+			return true
+		}
+	}
+
+	return false
 }
