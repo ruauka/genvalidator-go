@@ -1,6 +1,6 @@
 # structtag [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/fatih/structtag) 
 
-structtag provides an easy way of parsing and manipulating struct rules fields.
+structtag provides an easy way of parsing and manipulating struct tag fields.
 Please vendor the library as it might change in future versions.
 
 # Install
@@ -27,21 +27,21 @@ func main() {
 		t string `json:"foo,omitempty,string" xml:"foo"`
 	}
 
-	// get field rules
-	rules := reflect.TypeOf(t{}).Field(0).Tag
+	// get field tag
+	tag := reflect.TypeOf(t{}).Field(0).Tag
 
-	// ... and start using structtag by parsing the rules
-	tags, err := structtag.Parse(string(rules))
+	// ... and start using structtag by parsing the tag
+	tags, err := structtag.Parse(string(tag))
 	if err != nil {
 		panic(err)
 	}
 
 	// iterate over all tags
 	for _, t := range tags.Tags() {
-		fmt.Printf("rules: %+v\n", t)
+		fmt.Printf("tag: %+v\n", t)
 	}
 
-	// get a single rules
+	// get a single tag
 	jsonTag, err := tags.Get("json")
 	if err != nil {
 		panic(err)
@@ -51,12 +51,12 @@ func main() {
 	fmt.Println(jsonTag.Name)    // Output: foo
 	fmt.Println(jsonTag.Options) // Output: [omitempty string]
 
-	// change existing rules
+	// change existing tag
 	jsonTag.Name = "foo_bar"
 	jsonTag.Options = nil
 	tags.Set(jsonTag)
 
-	// add new rules
+	// add new tag
 	tags.Set(&structtag.Tag{
 		Key:     "hcl",
 		Name:    "foo",
