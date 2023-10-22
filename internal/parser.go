@@ -14,6 +14,13 @@ import (
 	"genvalidator/internal/templates"
 )
 
+// название правил и теге
+const (
+	require     = "rq"
+	lessThan    = "lt"
+	greaterThan = "gt"
+)
+
 var (
 	greaterThen        = []string{"GreaterThen", "больше", "greater"}
 	lessThen           = []string{"LessThen", "меньше", "less"}
@@ -43,12 +50,12 @@ func Execute() {
 	}
 
 	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
-	if needRewriteFile(validationFilePath) {
-		rewriteFile(validationFilePath, templates.HeadValidate)
+	if needReWriteFile(validationFilePath) {
+		reWriteFile(validationFilePath, templates.HeadValidate)
 	}
 	// проверка на необходимость перезаписи файла errors.go. Перезаписывается шапка.
-	if needRewriteFile(errorsFilePath) {
-		rewriteFile(errorsFilePath, templates.HeadErrors)
+	if needReWriteFile(errorsFilePath) {
+		reWriteFile(errorsFilePath, templates.HeadErrors)
 	}
 	// открытие файлов на дозапись
 	fileValidate := fileOpenAppendMode(validationFilePath)
@@ -125,11 +132,11 @@ func Execute() {
 					// основная логика
 					switch {
 					// обработка правила "rq"
-					case len(rules) == 1 && rules[0] == "rq":
+					case len(rules) == 1 && rules[0] == require:
 						// создание шаблона "ошибки"
 						errTemplate := templates.RequireErr()
 						// проверка на наличие уже созданной ошибки
-						keyErrTemplate := "rq"
+						keyErrTemplate := require
 						if _, ok := isErrExists[keyErrTemplate]; !ok {
 							// добавление шаблона ошибки в буфер
 							templates.AddErrTemplateToBuffer(isErrExists, keyErrTemplate, errTemplate, isFirstConcatErr, errBuffer)
@@ -150,7 +157,7 @@ func Execute() {
 							isFirstConcatValidation = false
 						}
 					// обработка правила "lt"
-					case rules[0] == "lt":
+					case rules[0] == lessThan:
 						// создание шаблона "ошибки"
 						errTemplate = templates.CreateErrorTemplate(greaterThen, rules[1])
 						// получение названия переменной "ошибки"
@@ -180,7 +187,7 @@ func Execute() {
 							isFirstConcatValidation = false
 						}
 					// обработка правила "gt"
-					case rules[0] == "gt":
+					case rules[0] == greaterThan:
 						// создание шаблона "ошибки"
 						errTemplate = templates.CreateErrorTemplate(lessThen, rules[1])
 						// получение названия переменной "ошибки"
@@ -277,7 +284,7 @@ func validateTagParse(rules string) [][]string {
 		)
 
 		for idx, sl := range trimmed {
-			if len(sl) == 1 && sl[0] == "rq" {
+			if len(sl) == 1 && sl[0] == require {
 				trimmedSorted = append(trimmedSorted, sl)
 				index = idx
 				break
@@ -296,7 +303,7 @@ func validateTagParse(rules string) [][]string {
 // rqCheck - проверка наличия правила "rq".
 func rqCheck(rules [][]string) bool {
 	for _, sl := range rules {
-		if len(sl) == 1 && sl[0] == "rq" {
+		if len(sl) == 1 && sl[0] == require {
 			return true
 		}
 	}
