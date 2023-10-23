@@ -29,7 +29,7 @@ func (e *ErrorTemplate) BufferConcat(template string, indent int, isFirstConcat 
 	}
 
 	// последующие конкатенации
-	e.Buffer = strings.TrimSpace(e.Buffer[:len(e.Buffer)-indent+3]) + template + strings.TrimSpace(e.Buffer[len(e.Buffer)-indent+4:])
+	e.Buffer = "\n" + strings.TrimSpace(e.Buffer[:len(e.Buffer)-indent+3]) + template + strings.TrimSpace(e.Buffer[len(e.Buffer)-indent+4:])
 }
 
 // CreateErrorTemplate - создание шаблона ошибки.
@@ -47,16 +47,20 @@ func CreateErrorTemplate(prefix []string, val string) string {
 
 // AddErrTemplateToBuffer - добавление новой "ошибки" в буффер.
 func AddErrTemplateToBuffer(isErrExists map[string]struct{}, key, errTemplate string, isFirstConcat bool, t *ErrorTemplate) {
-	// создание шаблона error
+	// добавление в буффер
 	t.BufferConcat(errTemplate, errIndent, isFirstConcat)
 	isErrExists[key] = struct{}{}
 }
 
 // HeadErrors - шаблон начала файла.
 func HeadErrors() string {
-	return `package validation
+	return `// Package errors - пакет с ошибками стратегии.
+package errors
 
 import "errors"
+
+// Is - check wrap errors.
+var Is = errors.Is
 `
 }
 

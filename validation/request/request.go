@@ -1,4 +1,4 @@
-package validation
+package request
 
 type Request struct {
 	Foo `json:"foo"`

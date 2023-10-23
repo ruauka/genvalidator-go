@@ -22,13 +22,15 @@ const (
 )
 
 var (
-	greaterThen        = []string{"GreaterThen", "больше", "greater"}
-	lessThen           = []string{"LessThen", "меньше", "less"}
-	requestFilePath    = "validation/request.go"
-	validationFilePath = "validation/validate.go"
-	errorsFilePath     = "validation/errors.go"
-	errTemplate        string
-	errVarName         string
+	greaterThen          = []string{"GreaterThen", "больше", "greater"}
+	lessThen             = []string{"LessThen", "меньше", "less"}
+	requestFilePath      = "validation/request/request.go"
+	validationFilePath   = "validation/request/validate.go"
+	errorsFilePath       = "validation/errors/errors.go"
+	testingFilePath      = "validation/request/validate_test.go"
+	isFirstConcatTesting = true // флаг для конкатенации буффера "тестирование"
+	errTemplate          string
+	errVarName           string
 )
 
 var (
@@ -36,6 +38,8 @@ var (
 	isErrExists = make(map[string]struct{})
 	// мапа для проверки уже имеющегося вызова функции правил
 	isFuncCall = make(map[string]struct{})
+	// мапа для проверки уже имеющейся тестовой функции
+	isTestingExists = make(map[string]struct{})
 )
 
 func Execute() {
@@ -57,14 +61,26 @@ func Execute() {
 	if needReWriteFile(errorsFilePath) {
 		reWriteFile(errorsFilePath, templates.HeadErrors)
 	}
-	// открытие файлов на дозапись
-	fileValidate := fileOpenAppendMode(validationFilePath)
-	fileErr := fileOpenAppendMode(errorsFilePath)
-	// создание буффера для шаблона "ошибка"
-	errBuffer := templates.NewTemplateError()
+	// проверка на необходимость перезаписи файла validate_test.go. Перезаписывается шапка.
+	if needReWriteFile(testingFilePath) {
+		reWriteFile(testingFilePath, func() string { return "" })
+	}
 
-	// создание буффера для шаблона функции "Validate"
-	invokeBuffer := templates.NewInvokeTemplate()
+	// открытие файлов на дозапись
+	var (
+		fileValidate = fileOpenAppendMode(validationFilePath)
+		fileErr      = fileOpenAppendMode(errorsFilePath)
+		fileTesting  = fileOpenAppendMode(testingFilePath)
+	)
+
+	var (
+		// создание буффера для шаблона "ошибка"
+		errBuffer = templates.NewTemplateError()
+		// создание буффера для шаблона функции "Validate"
+		invokeBuffer = templates.NewInvokeTemplate()
+		// создание буффера для шаблона "тестирование"
+		testingBuffer = templates.NewTestingTemplate()
+	)
 
 	// проход по нодам дерева ast
 	ast.Inspect(astFile, func(node ast.Node) bool {
@@ -113,16 +129,10 @@ func Execute() {
 					funcFields templates.TemplateFields
 					// создание буффера для шаблона "функция"
 					funcBuffer = templates.NewFunctionsTemplate()
-					// флаг для конкатенации буффера "функция"
-					isFirstConcatFunc = true
-					// флаг для конкатенации буффера "ошибка"
-					isFirstConcatErr = true
-					// флаг для конкатенации буффера функции "Validate"
-					isFirstConcatValidation = true
-					// название валидирующей функции
-					keyFuncCall string
-					// название ошибки
-					keyErrTemplate string
+					// флаг для конкатенации буффера "функция" | "ошибка" | функции "Validate"
+					isFirstConcatFunc, isFirstConcatErr, isFirstConcatValidation = true, true, true
+					// название валидирующей функции | ошибки
+					funcName, keyErrTemplate string
 				)
 
 				// палучение правил тега
@@ -149,11 +159,25 @@ func Execute() {
 						funcBuffer.BufferConcat(templates.Require(), indent, isFirstConcatFunc)
 						isFirstConcatFunc = false
 
+						// название функции
+						funcName = typeSpec.Name.String() + field.Names[0].String()
+
+						// проверка на наличие уже существующий тестирующий функции
+						if _, ok := isTestingExists[funcName]; !ok {
+							// добавление шаблона "тестирование" в буфер
+							templates.AddTestingFuncToBuffer(
+								isTestingExists,
+								funcName,
+								templates.TestingFuncTemplate(typeSpec.Name.String(), field.Names[0].String(), jsonFieldName.Name),
+								isFirstConcatTesting,
+								testingBuffer)
+							isFirstConcatTesting = false
+						}
+
 						// проверка на наличие уже вызванной функции в шаблоне "Validate"
-						keyFuncCall = typeSpec.Name.String() + field.Names[0].String()
-						if _, ok := isFuncCall[keyFuncCall]; !ok {
+						if _, ok := isFuncCall[funcName]; !ok {
 							// добавление функции проверки в шаблон "Validate"
-							templates.AddFuncCallToBuffer(isFuncCall, keyFuncCall, templates.CallingFuncTemplate(keyFuncCall), isFirstConcatValidation, invokeBuffer)
+							templates.AddFuncCallToBuffer(isFuncCall, funcName, templates.CallingFuncTemplate(funcName), isFirstConcatValidation, invokeBuffer)
 							isFirstConcatValidation = false
 						}
 					// обработка правила "lt"
@@ -179,11 +203,25 @@ func Execute() {
 						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcatFunc)
 						isFirstConcatFunc = false
 
+						// название функции
+						funcName = typeSpec.Name.String() + field.Names[0].String()
+
+						// проверка на наличие уже существующий тестирующий функции
+						if _, ok := isTestingExists[funcName]; !ok {
+							// добавление шаблона "тестирование" в буфер
+							templates.AddTestingFuncToBuffer(
+								isTestingExists,
+								funcName,
+								templates.TestingFuncTemplate(typeSpec.Name.String(), field.Names[0].String(), jsonFieldName.Name),
+								isFirstConcatTesting,
+								testingBuffer)
+							isFirstConcatTesting = false
+						}
+
 						// проверка на наличие уже вызванной функции в шаблоне "Validate"
-						keyFuncCall = typeSpec.Name.String() + field.Names[0].String()
-						if _, ok := isFuncCall[keyFuncCall]; !ok {
+						if _, ok := isFuncCall[funcName]; !ok {
 							// добавление функции проверки в шаблон "Validate"
-							templates.AddFuncCallToBuffer(isFuncCall, keyFuncCall, templates.CallingFuncTemplate(keyFuncCall), isFirstConcatValidation, invokeBuffer)
+							templates.AddFuncCallToBuffer(isFuncCall, funcName, templates.CallingFuncTemplate(funcName), isFirstConcatValidation, invokeBuffer)
 							isFirstConcatValidation = false
 						}
 					// обработка правила "gt"
@@ -209,11 +247,25 @@ func Execute() {
 						funcBuffer.BufferConcat(funcTemplate, indent, isFirstConcatFunc)
 						isFirstConcatFunc = false
 
+						// название функции
+						funcName = typeSpec.Name.String() + field.Names[0].String()
+
+						// проверка на наличие уже существующий тестирующий функции
+						if _, ok := isTestingExists[funcName]; !ok {
+							// добавление шаблона "тестирование" в буфер
+							templates.AddTestingFuncToBuffer(
+								isTestingExists,
+								funcName,
+								templates.TestingFuncTemplate(typeSpec.Name.String(), field.Names[0].String(), jsonFieldName.Name),
+								isFirstConcatTesting,
+								testingBuffer)
+							isFirstConcatTesting = false
+						}
+
 						// проверка на наличие уже вызванной функции в шаблоне "Validate"
-						keyFuncCall = typeSpec.Name.String() + field.Names[0].String()
-						if _, ok := isFuncCall[keyFuncCall]; !ok {
+						if _, ok := isFuncCall[funcName]; !ok {
 							// добавление функции проверки в шаблон "Validate"
-							templates.AddFuncCallToBuffer(isFuncCall, keyFuncCall, templates.CallingFuncTemplate(keyFuncCall), isFirstConcatValidation, invokeBuffer)
+							templates.AddFuncCallToBuffer(isFuncCall, funcName, templates.CallingFuncTemplate(funcName), isFirstConcatValidation, invokeBuffer)
 							isFirstConcatValidation = false
 						}
 					}
@@ -233,11 +285,14 @@ func Execute() {
 	templateExecute("validate.go", invokeBuffer.Buffer, fileValidate, templates.TemplateFields{})
 	// создание и запись шаблона "ошибки" в errors.go
 	templateExecute("errors.go", errBuffer.Buffer, fileErr, templates.TemplateFields{})
+	// создание и запись шаблона "тестирование" в validate_test.go
+	templateExecute("errors.go", testingBuffer.Buffer, fileTesting, templates.TemplateFields{})
 
-	fileValidate.Close()
-	fileErr.Close()
+	defer func() { _ = fileValidate.Close() }()
+	defer func() { _ = fileErr.Close() }()
+	defer func() { _ = fileTesting.Close() }()
 
-	//ast.Print(fs, astFile)
+	// ast.Print(fs, astFile)
 }
 
 // indentConcat - расчет отступа для взятия подстроки для конкатинации буффера.

@@ -85,7 +85,7 @@ func (t *TemplateFields) FieldsFill(structN, fieldN, jsonN string) {
 
 // HeadValidate - шаблон начала файла.
 func HeadValidate() string {
-	return `package validation
+	return `package request
 
 import "fmt"
 
@@ -111,7 +111,7 @@ func Require() string {
 	return `
     // require (rq)
     if req.{{.StructName}}.{{.StrategyFieldName}} == nil {
-        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %w", ErrRequired)
+        return fmt.Errorf("failed check field '{{.StructName}}.{{.JsonFieldName}}': %w", errors.ErrRequired)
     }
 `
 }
@@ -121,7 +121,7 @@ func LessThan(errStr string) string {
 	return fmt.Sprintf("\n    "+
 		"// less than (lt)\n    "+
 		"if Len(req.{{.StructName}}.{{.StrategyFieldName}}) > {{.LessThan}} {\n"+
-		"        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
+		"        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", errors.%s)\n    }\n", errStr)
 }
 
 // LessThanPtr - шаблон проверки на "меньше чем" и поле обязательное - lt.
@@ -129,7 +129,7 @@ func LessThanPtr(errStr string) string {
 	return fmt.Sprintf("\n    "+
 		"// less than (lt)\n    "+
 		"if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) > {{.LessThan}} {\n"+
-		"        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
+		"        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", errors.%s)\n    }\n", errStr)
 }
 
 // LessThanSl - шаблон проверки элементов слайса строк на "меньше чем" - lt.
@@ -138,7 +138,7 @@ func LessThanSl(errStr string) string {
 		"// less than (lt)\n    "+
 		"for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {"+
 		"\n        if Len(val) > {{.LessThan}} {"+
-		"\n            return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w, err in %%dth array index\", %s, idx)\n        }\n    }\n", errStr)
+		"\n            return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w, err in %%dth array index\", errors.%s, idx)\n        }\n    }\n", errStr)
 }
 
 // GreaterThan - шаблон проверки на "больше чем" - gt.
@@ -146,7 +146,7 @@ func GreaterThan(errStr string) string {
 	return fmt.Sprintf("\n    "+
 		"// greater than (gt)\n    "+
 		"if Len(req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThan}}"+
-		" {\n        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
+		" {\n        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", errors.%s)\n    }\n", errStr)
 }
 
 // GreaterThanPtr - шаблон проверки на "больше чем" и поле обязательное - gt.
@@ -154,7 +154,7 @@ func GreaterThanPtr(errStr string) string {
 	return fmt.Sprintf("\n    "+
 		"// greater than (gt)\n    "+
 		"if Len(*req.{{.StructName}}.{{.StrategyFieldName}}) < {{.GreaterThan}}"+
-		" {\n        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", %s)\n    }\n", errStr)
+		" {\n        return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w\", errors.%s)\n    }\n", errStr)
 }
 
 // GreaterThanSl - шаблон проверки элементов слайса строк на "больше чем" - gt.
@@ -164,7 +164,7 @@ func GreaterThanSl(errStr string) string {
 			"// greater than (gt)\n    "+
 			"for idx, val := range req.{{.StructName}}.{{.StrategyFieldName}} {"+
 			"\n        if Len(val) < {{.GreaterThan}} {\n"+
-			"            return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w, err in %%dth array index\", %s, idx)\n        }\n    }\n", errStr,
+			"            return fmt.Errorf(\"failed check field '{{.StructName}}.{{.JsonFieldName}}': %%w, err in %%dth array index\", errors.%s, idx)\n        }\n    }\n", errStr,
 	)
 }
 

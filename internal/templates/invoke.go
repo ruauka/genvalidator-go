@@ -29,7 +29,7 @@ func (i *InvokeTemplate) BufferConcat(template string, isFirstConcat bool) {
 
 // AddFuncCallToBuffer - добавление нового вызова новой валидирующий функции в буффер.
 func AddFuncCallToBuffer(isFuncCall map[string]struct{}, key, template string, isFirstConcat bool, t *InvokeTemplate) {
-	// создание шаблона error
+	// добавление в буффер
 	t.BufferConcat(template, isFirstConcat)
 	isFuncCall[key] = struct{}{}
 }
