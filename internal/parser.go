@@ -24,10 +24,6 @@ const (
 var (
 	greaterThen          = []string{"GreaterThen", "больше", "greater"}
 	lessThen             = []string{"LessThen", "меньше", "less"}
-	requestFilePath      = "validation/request/request.go"
-	validationFilePath   = "validation/request/validate.go"
-	errorsFilePath       = "validation/errors/errors.go"
-	testingFilePath      = "validation/request/validate_test.go"
 	isFirstConcatTesting = true // флаг для конкатенации буффера "тестирование"
 	errTemplate          string
 	errVarName           string
@@ -42,9 +38,9 @@ var (
 	isTestingExists = make(map[string]struct{})
 )
 
-func Execute() {
+func Execute(requestPath, validatePath, testingPath, errPath string) {
 	// зачитывание и парсинг файла со структурами в строку
-	s := readStruct(requestFilePath)
+	s := readStruct(requestPath)
 
 	fs := token.NewFileSet()
 	// дерево ast
@@ -53,24 +49,29 @@ func Execute() {
 		log.Fatalf("ast file parse error: %s", err)
 	}
 
+	// проверка наличия папки errors, если нет, то создать
+	if err := os.Mkdir(errPath[:len(errPath)-10], os.ModePerm); err != nil && !os.IsExist(err) {
+		log.Fatal(err)
+	}
+
 	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
-	if needReWriteFile(validationFilePath) {
-		reWriteFile(validationFilePath, templates.HeadValidate)
+	if needReWriteFile(validatePath) {
+		reWriteFile(validatePath, templates.HeadValidate)
 	}
 	// проверка на необходимость перезаписи файла errors.go. Перезаписывается шапка.
-	if needReWriteFile(errorsFilePath) {
-		reWriteFile(errorsFilePath, templates.HeadErrors)
+	if needReWriteFile(errPath) {
+		reWriteFile(errPath, templates.HeadErrors)
 	}
 	// проверка на необходимость перезаписи файла validate_test.go. Перезаписывается шапка.
-	if needReWriteFile(testingFilePath) {
-		reWriteFile(testingFilePath, func() string { return "" })
+	if needReWriteFile(testingPath) {
+		reWriteFile(testingPath, func() string { return "" })
 	}
 
 	// открытие файлов на дозапись
 	var (
-		fileValidate = fileOpenAppendMode(validationFilePath)
-		fileErr      = fileOpenAppendMode(errorsFilePath)
-		fileTesting  = fileOpenAppendMode(testingFilePath)
+		fileValidate = fileOpenAppendMode(validatePath)
+		fileErr      = fileOpenAppendMode(errPath)
+		fileTesting  = fileOpenAppendMode(testingPath)
 	)
 
 	var (
