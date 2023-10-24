@@ -86,8 +86,28 @@ func main() {}
 - pkg/request - path where script creates `validate.go`, `validate_test.go`
 - pkg/errors - path where script creates `errors.go`
 
-5. Run plugin:
+5. Run script:
 
 ```bash
 go generate ./...
+```
+
+6. Script generate 1 folder(if not exists) and 3 files:
+    
+    - `errors.go` (package errors)
+    - `validate.go`, `validate_test.go` (package request)
+
+```bash
+.
+├── genvalidate
+├── go.mod
+├── go.sum
+├── main.go
+└── pkg
+    ├── errors
+    │   └── errors.go
+    └── request
+        ├── request.go
+        ├── validate.go
+        └── validate_test.go
 ```
