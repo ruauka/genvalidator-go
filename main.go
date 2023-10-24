@@ -15,14 +15,16 @@ var (
 )
 
 func main() {
-	request := os.Getenv("request") // validation/request
-	if request == "" {
-		log.Fatal("request is not define")
-	}
-	errors := os.Getenv("errors") // validation/errors
-	if errors == "" {
-		log.Fatal("errors is not define")
-	}
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("empty request or errors path", err)
+		}
+	}()
+
+	args := os.Args
+
+	request := args[1] // validation/request
+	errors := args[2]  // validation/errors
 
 	internal.Execute(
 		request+requestFilePath,
@@ -31,6 +33,3 @@ func main() {
 		errors+errorsFilePath,
 	)
 }
-
-// request=validation/request errors=validation/errors go run main.go
-// request=pkg/request errors=pkg/errors ./validgen
