@@ -63,9 +63,9 @@ type Baz struct {
 package main
 
 import (
-	"fmt"
-	
-	"project/pkg/request"
+    "fmt"
+    
+    "project/pkg/request"
 )
 
 //go:generate ./genvalidate pkg/request pkg/errors
