@@ -1,37 +1,19 @@
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
-github.com/davecgh/go-spew/spew
 # github.com/fatih/structtag v1.2.0
 ## explicit; go 1.12
 github.com/fatih/structtag
 # github.com/google/uuid v1.3.0
 ## explicit
-github.com/google/uuid
 # github.com/ozontech/allure-go/pkg/allure v0.6.12
 ## explicit; go 1.17
-github.com/ozontech/allure-go/pkg/allure
 # github.com/ozontech/allure-go/pkg/framework v0.6.29
 ## explicit; go 1.17
-github.com/ozontech/allure-go/pkg/framework/asserts_wrapper/helper
-github.com/ozontech/allure-go/pkg/framework/asserts_wrapper/wrapper
-github.com/ozontech/allure-go/pkg/framework/core/allure_manager/adapter
-github.com/ozontech/allure-go/pkg/framework/core/allure_manager/ctx
-github.com/ozontech/allure-go/pkg/framework/core/allure_manager/manager
-github.com/ozontech/allure-go/pkg/framework/core/allure_manager/testplan
-github.com/ozontech/allure-go/pkg/framework/core/assert
-github.com/ozontech/allure-go/pkg/framework/core/common
-github.com/ozontech/allure-go/pkg/framework/core/constants
-github.com/ozontech/allure-go/pkg/framework/provider
-github.com/ozontech/allure-go/pkg/framework/runner
 # github.com/pkg/errors v0.9.1
 ## explicit
-github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
-github.com/pmezard/go-difflib/difflib
 # github.com/stretchr/testify v1.7.1
 ## explicit; go 1.13
-github.com/stretchr/testify/assert
 # gopkg.in/yaml.v3 v3.0.0
 ## explicit
-gopkg.in/yaml.v3
