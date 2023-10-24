@@ -14,7 +14,7 @@ Validating code generator.
 
 1. Download binary file `genvalidate` and put in project root:
 ```bash
-curl -OL https://raw.githubusercontent.com/ruauka/genvalidator-go/master/genvalidate
+curl -OL https://raw.githubusercontent.com/ruauka/genvalidator-go/master/genvalidate && chmod +x genvalidate
 ```
 2. Create file `request.go` with your struct in folder `pkg -> request`. 
 
