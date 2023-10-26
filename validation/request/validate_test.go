@@ -15,10 +15,7 @@ import (
 	"genvalidator/validation/request"
 )
 
-func TestFooField2(tr *testing.T) {
-	// создаем объект test runner
-	r := runner.NewRunner(tr, tr.Name())
-
+func TestFooField2(t *testing.T) {
 	testCases := []struct {
 		File  string
 		Name  string
@@ -44,11 +41,11 @@ func TestFooField2(tr *testing.T) {
 	for _, testCase := range testCases {
 		test := testCase
 
-		r.NewTest(test.Name, func(t provider.T) {
+		runner.Run(t, test.Name, func(t provider.T) {
 			var req request.Request
 
 			// задаем allure id
-			t.AllureID(fmt.Sprintf("%s_%s", tr.Name(), test.Name))
+			t.AllureID(t.Name())
 
 			// указываем информацию о тестах для allure отчета
 			t.Epic("Validating")
@@ -76,14 +73,9 @@ func TestFooField2(tr *testing.T) {
 			t.WithAttachments(allure.NewAttachment("Request", allure.JSON, body))
 		})
 	}
-
-	r.RunTests()
 }
 
-func TestFooBar(tr *testing.T) {
-	// создаем объект test runner
-	r := runner.NewRunner(tr, tr.Name())
-
+func TestFooBar(t *testing.T) {
 	testCases := []struct {
 		File  string
 		Name  string
@@ -109,11 +101,11 @@ func TestFooBar(tr *testing.T) {
 	for _, testCase := range testCases {
 		test := testCase
 
-		r.NewTest(test.Name, func(t provider.T) {
+		runner.Run(t, test.Name, func(t provider.T) {
 			var req request.Request
 
 			// задаем allure id
-			t.AllureID(fmt.Sprintf("%s_%s", tr.Name(), test.Name))
+			t.AllureID(t.Name())
 
 			// указываем информацию о тестах для allure отчета
 			t.Epic("Validating")
@@ -141,14 +133,9 @@ func TestFooBar(tr *testing.T) {
 			t.WithAttachments(allure.NewAttachment("Request", allure.JSON, body))
 		})
 	}
-
-	r.RunTests()
 }
 
-func TestBarField3(tr *testing.T) {
-	// создаем объект test runner
-	r := runner.NewRunner(tr, tr.Name())
-
+func TestBarField3(t *testing.T) {
 	testCases := []struct {
 		File  string
 		Name  string
@@ -174,11 +161,11 @@ func TestBarField3(tr *testing.T) {
 	for _, testCase := range testCases {
 		test := testCase
 
-		r.NewTest(test.Name, func(t provider.T) {
+		runner.Run(t, test.Name, func(t provider.T) {
 			var req request.Request
 
 			// задаем allure id
-			t.AllureID(fmt.Sprintf("%s_%s", tr.Name(), test.Name))
+			t.AllureID(t.Name())
 
 			// указываем информацию о тестах для allure отчета
 			t.Epic("Validating")
@@ -206,14 +193,9 @@ func TestBarField3(tr *testing.T) {
 			t.WithAttachments(allure.NewAttachment("Request", allure.JSON, body))
 		})
 	}
-
-	r.RunTests()
 }
 
-func TestBarField4(tr *testing.T) {
-	// создаем объект test runner
-	r := runner.NewRunner(tr, tr.Name())
-
+func TestBarField4(t *testing.T) {
 	testCases := []struct {
 		File  string
 		Name  string
@@ -239,11 +221,11 @@ func TestBarField4(tr *testing.T) {
 	for _, testCase := range testCases {
 		test := testCase
 
-		r.NewTest(test.Name, func(t provider.T) {
+		runner.Run(t, test.Name, func(t provider.T) {
 			var req request.Request
 
 			// задаем allure id
-			t.AllureID(fmt.Sprintf("%s_%s", tr.Name(), test.Name))
+			t.AllureID(t.Name())
 
 			// указываем информацию о тестах для allure отчета
 			t.Epic("Validating")
@@ -271,14 +253,9 @@ func TestBarField4(tr *testing.T) {
 			t.WithAttachments(allure.NewAttachment("Request", allure.JSON, body))
 		})
 	}
-
-	r.RunTests()
 }
 
-func TestBazField5(tr *testing.T) {
-	// создаем объект test runner
-	r := runner.NewRunner(tr, tr.Name())
-
+func TestBazField5(t *testing.T) {
 	testCases := []struct {
 		File  string
 		Name  string
@@ -304,11 +281,11 @@ func TestBazField5(tr *testing.T) {
 	for _, testCase := range testCases {
 		test := testCase
 
-		r.NewTest(test.Name, func(t provider.T) {
+		runner.Run(t, test.Name, func(t provider.T) {
 			var req request.Request
 
 			// задаем allure id
-			t.AllureID(fmt.Sprintf("%s_%s", tr.Name(), test.Name))
+			t.AllureID(t.Name())
 
 			// указываем информацию о тестах для allure отчета
 			t.Epic("Validating")
@@ -336,14 +313,9 @@ func TestBazField5(tr *testing.T) {
 			t.WithAttachments(allure.NewAttachment("Request", allure.JSON, body))
 		})
 	}
-
-	r.RunTests()
 }
 
-func TestBazField6(tr *testing.T) {
-	// создаем объект test runner
-	r := runner.NewRunner(tr, tr.Name())
-
+func TestBazField6(t *testing.T) {
 	testCases := []struct {
 		File  string
 		Name  string
@@ -369,11 +341,11 @@ func TestBazField6(tr *testing.T) {
 	for _, testCase := range testCases {
 		test := testCase
 
-		r.NewTest(test.Name, func(t provider.T) {
+		runner.Run(t, test.Name, func(t provider.T) {
 			var req request.Request
 
 			// задаем allure id
-			t.AllureID(fmt.Sprintf("%s_%s", tr.Name(), test.Name))
+			t.AllureID(t.Name())
 
 			// указываем информацию о тестах для allure отчета
 			t.Epic("Validating")
@@ -401,14 +373,9 @@ func TestBazField6(tr *testing.T) {
 			t.WithAttachments(allure.NewAttachment("Request", allure.JSON, body))
 		})
 	}
-
-	r.RunTests()
 }
 
-func TestBazField7(tr *testing.T) {
-	// создаем объект test runner
-	r := runner.NewRunner(tr, tr.Name())
-
+func TestBazField7(t *testing.T) {
 	testCases := []struct {
 		File  string
 		Name  string
@@ -434,11 +401,11 @@ func TestBazField7(tr *testing.T) {
 	for _, testCase := range testCases {
 		test := testCase
 
-		r.NewTest(test.Name, func(t provider.T) {
+		runner.Run(t, test.Name, func(t provider.T) {
 			var req request.Request
 
 			// задаем allure id
-			t.AllureID(fmt.Sprintf("%s_%s", tr.Name(), test.Name))
+			t.AllureID(t.Name())
 
 			// указываем информацию о тестах для allure отчета
 			t.Epic("Validating")
@@ -466,6 +433,4 @@ func TestBazField7(tr *testing.T) {
 			t.WithAttachments(allure.NewAttachment("Request", allure.JSON, body))
 		})
 	}
-
-	r.RunTests()
 }

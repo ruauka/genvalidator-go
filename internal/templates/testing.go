@@ -59,10 +59,8 @@ import (
 func TestingFuncTemplate(structName, fieldName, jsonName string) string {
 	funcName := structName + fieldName
 	return fmt.Sprintf(
-		"\nfunc Test%s(tr *testing.T) {"+
-			"\n    // создаем объект test runner"+
-			"\n    r := runner.NewRunner(tr, tr.Name())\n\n    "+
-			"testCases := []struct {\n        "+
+		"\nfunc Test%s(t *testing.T) {"+
+			"\n    testCases := []struct {\n        "+
 			"File  string\n        "+
 			"Name  string\n        "+
 			"Error error\n    }"+
@@ -82,10 +80,10 @@ func TestingFuncTemplate(structName, fieldName, jsonName string) string {
 			"},\n    }\n\n    "+
 			"for _, testCase := range testCases {"+
 			"\n        test := testCase\n\n        "+
-			"r.NewTest(test.Name, func(t provider.T) {"+
+			"runner.Run(t, test.Name, func(t provider.T) {"+
 			"\n            var req request.Request\n\n            "+
 			"// задаем allure id\n            "+
-			"t.AllureID(fmt.Sprintf(\"%%s_%%s\", tr.Name(), test.Name))\n\n"+
+			"t.AllureID(t.Name())\n\n"+
 			"            // указываем информацию о тестах для allure отчета\n            "+
 			"t.Epic(\"Validating\")\n            "+
 			"t.Story(\"%s\")\n            "+
@@ -103,7 +101,7 @@ func TestingFuncTemplate(structName, fieldName, jsonName string) string {
 			"t.WithNewStep(\"ASSERT: ErrorIs\", func(sCtx provider.StepCtx) {"+
 			"\n                if !errors.Is(err, test.Error) { // импорт из pkg/errors\n                   "+
 			" sCtx.FailNow()\n                }\n            }, params...)\n            "+
-			"t.WithAttachments(allure.NewAttachment(\"Request\", allure.JSON, body))\n        })\n    }\n\n"+
-			"    r.RunTests()\n}\n", funcName, structName, fieldName, jsonName, structName, fieldName, jsonName, funcName, jsonName, funcName,
+			"t.WithAttachments(allure.NewAttachment(\"Request\", allure.JSON, body))\n        })\n    }\n"+
+			"}\n", funcName, structName, fieldName, jsonName, structName, fieldName, jsonName, funcName, jsonName, funcName,
 	)
 }

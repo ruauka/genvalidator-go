@@ -1,10 +1,6 @@
 package request
 
-import (
-	"fmt"
-
-	"genvalidator/validation/errors"
-)
+import "fmt"
 
 // Len - длина строки (в рунах).
 func Len(text string) int {
