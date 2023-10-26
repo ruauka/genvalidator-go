@@ -92,10 +92,11 @@ func main() {}
 go generate ./...
 ```
 
-6. Script generate 1 folder(if not exists) and 3 files:
+## Result
+Script generate 1 folder(if not exists) and 3 files:
     
-    - `errors.go` (package errors)
-    - `validate.go`, `validate_test.go` (package request)
+- `errors.go` (package errors)
+- `validate.go`, `validate_test.go` (package request)
 
 ```bash
 .
