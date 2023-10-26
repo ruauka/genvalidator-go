@@ -1,4 +1,4 @@
-package request_test
+package request
 
 import (
 	"encoding/json"
@@ -12,7 +12,6 @@ import (
 	"github.com/ozontech/allure-go/pkg/framework/runner"
 
 	"genvalidator/validation/errors"
-	"genvalidator/validation/request"
 )
 
 func TestFooField2(t *testing.T) {
@@ -42,7 +41,7 @@ func TestFooField2(t *testing.T) {
 		test := testCase
 
 		runner.Run(t, test.Name, func(t provider.T) {
-			var req request.Request
+			var req Request
 
 			// задаем allure id
 			t.AllureID(t.Name())
@@ -61,7 +60,7 @@ func TestFooField2(t *testing.T) {
 			err = json.Unmarshal(body, &req)
 			t.Assert().NoError(err, fmt.Sprintf("Преобразование %s", path))
 
-			err = request.FooField2(&req)
+			err = FooField2(&req)
 			params := allure.NewParameters("Expected", fmt.Sprintf("%v", test.Error), "Actual", fmt.Sprintf("%v", err))
 
 			// временный assert на тип error
@@ -102,7 +101,7 @@ func TestFooBar(t *testing.T) {
 		test := testCase
 
 		runner.Run(t, test.Name, func(t provider.T) {
-			var req request.Request
+			var req Request
 
 			// задаем allure id
 			t.AllureID(t.Name())
@@ -121,7 +120,7 @@ func TestFooBar(t *testing.T) {
 			err = json.Unmarshal(body, &req)
 			t.Assert().NoError(err, fmt.Sprintf("Преобразование %s", path))
 
-			err = request.FooBar(&req)
+			err = FooBar(&req)
 			params := allure.NewParameters("Expected", fmt.Sprintf("%v", test.Error), "Actual", fmt.Sprintf("%v", err))
 
 			// временный assert на тип error
@@ -162,7 +161,7 @@ func TestBarField3(t *testing.T) {
 		test := testCase
 
 		runner.Run(t, test.Name, func(t provider.T) {
-			var req request.Request
+			var req Request
 
 			// задаем allure id
 			t.AllureID(t.Name())
@@ -181,7 +180,7 @@ func TestBarField3(t *testing.T) {
 			err = json.Unmarshal(body, &req)
 			t.Assert().NoError(err, fmt.Sprintf("Преобразование %s", path))
 
-			err = request.BarField3(&req)
+			err = BarField3(&req)
 			params := allure.NewParameters("Expected", fmt.Sprintf("%v", test.Error), "Actual", fmt.Sprintf("%v", err))
 
 			// временный assert на тип error
@@ -222,7 +221,7 @@ func TestBarField4(t *testing.T) {
 		test := testCase
 
 		runner.Run(t, test.Name, func(t provider.T) {
-			var req request.Request
+			var req Request
 
 			// задаем allure id
 			t.AllureID(t.Name())
@@ -241,7 +240,7 @@ func TestBarField4(t *testing.T) {
 			err = json.Unmarshal(body, &req)
 			t.Assert().NoError(err, fmt.Sprintf("Преобразование %s", path))
 
-			err = request.BarField4(&req)
+			err = BarField4(&req)
 			params := allure.NewParameters("Expected", fmt.Sprintf("%v", test.Error), "Actual", fmt.Sprintf("%v", err))
 
 			// временный assert на тип error
@@ -282,7 +281,7 @@ func TestBazField5(t *testing.T) {
 		test := testCase
 
 		runner.Run(t, test.Name, func(t provider.T) {
-			var req request.Request
+			var req Request
 
 			// задаем allure id
 			t.AllureID(t.Name())
@@ -301,7 +300,7 @@ func TestBazField5(t *testing.T) {
 			err = json.Unmarshal(body, &req)
 			t.Assert().NoError(err, fmt.Sprintf("Преобразование %s", path))
 
-			err = request.BazField5(&req)
+			err = BazField5(&req)
 			params := allure.NewParameters("Expected", fmt.Sprintf("%v", test.Error), "Actual", fmt.Sprintf("%v", err))
 
 			// временный assert на тип error
@@ -342,7 +341,7 @@ func TestBazField6(t *testing.T) {
 		test := testCase
 
 		runner.Run(t, test.Name, func(t provider.T) {
-			var req request.Request
+			var req Request
 
 			// задаем allure id
 			t.AllureID(t.Name())
@@ -361,7 +360,7 @@ func TestBazField6(t *testing.T) {
 			err = json.Unmarshal(body, &req)
 			t.Assert().NoError(err, fmt.Sprintf("Преобразование %s", path))
 
-			err = request.BazField6(&req)
+			err = BazField6(&req)
 			params := allure.NewParameters("Expected", fmt.Sprintf("%v", test.Error), "Actual", fmt.Sprintf("%v", err))
 
 			// временный assert на тип error
@@ -402,7 +401,7 @@ func TestBazField7(t *testing.T) {
 		test := testCase
 
 		runner.Run(t, test.Name, func(t provider.T) {
-			var req request.Request
+			var req Request
 
 			// задаем allure id
 			t.AllureID(t.Name())
@@ -421,7 +420,7 @@ func TestBazField7(t *testing.T) {
 			err = json.Unmarshal(body, &req)
 			t.Assert().NoError(err, fmt.Sprintf("Преобразование %s", path))
 
-			err = request.BazField7(&req)
+			err = BazField7(&req)
 			params := allure.NewParameters("Expected", fmt.Sprintf("%v", test.Error), "Actual", fmt.Sprintf("%v", err))
 
 			// временный assert на тип error

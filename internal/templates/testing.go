@@ -6,7 +6,7 @@ import (
 )
 
 // отступ для конкатенации
-const indentTesting = 269
+const indentTesting = 264
 
 // TestingTemplate - структура шаблона "тестирование".
 type TestingTemplate struct {
@@ -39,7 +39,7 @@ func AddTestingFuncToBuffer(isTestingExists map[string]struct{}, key, template s
 
 // TestingHeadTemplate - шаблон "тестирования".
 func TestingHeadTemplate() string {
-	return `package request_test
+	return `package request
 
 import (
     "encoding/json"
@@ -81,7 +81,7 @@ func TestingFuncTemplate(structName, fieldName, jsonName string) string {
 			"for _, testCase := range testCases {"+
 			"\n        test := testCase\n\n        "+
 			"runner.Run(t, test.Name, func(t provider.T) {"+
-			"\n            var req request.Request\n\n            "+
+			"\n            var req Request\n\n            "+
 			"// задаем allure id\n            "+
 			"t.AllureID(t.Name())\n\n"+
 			"            // указываем информацию о тестах для allure отчета\n            "+
@@ -95,7 +95,7 @@ func TestingFuncTemplate(structName, fieldName, jsonName string) string {
 			"// сериализация JSON в структуру request.Request\n            "+
 			"err = json.Unmarshal(body, &req)\n            "+
 			"t.Assert().NoError(err, fmt.Sprintf(\"Преобразование %%s\", path))\n\n            "+
-			"err = request.%s(&req)\n            "+
+			"err = %s(&req)\n            "+
 			"params := allure.NewParameters(\"Expected\", fmt.Sprintf(\"%%v\", test.Error), \"Actual\", fmt.Sprintf(\"%%v\", err))\n\n"+
 			"            // временный assert на тип error\n            "+
 			"t.WithNewStep(\"ASSERT: ErrorIs\", func(sCtx provider.StepCtx) {"+
