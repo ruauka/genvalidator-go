@@ -4,11 +4,11 @@
 
 Validating code generator.
 
-## Rules
+## Content
 
-- rq - Required field. All field types.
-- lt - Length of the field must be less than the specified length. Only `string` and slices with string type.
-- gt - Length of the field must be greater than the specified length. Only `string` and slices with string type.
+- [Usage](#usage)
+- [Rules](#rules)
+- [Result](#result)
 
 ## Usage
 
@@ -78,6 +78,12 @@ type Request struct {
 ```bash
 go generate ./...
 ```
+
+## Rules
+
+- rq - Required field. All field types.
+- lt - Length of the field must be less than the specified length. Only `string` and slices with string type.
+- gt - Length of the field must be greater than the specified length. Only `string` and slices with string type.
 
 ## Result
 Script generate 1 folder(if not exists) and 3 files:
