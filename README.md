@@ -57,34 +57,21 @@ type Baz struct {
 ```
 
 3. Use tag `validate` and 3 rules.
-4. Add string `//go:generate ./genvalidate pkg/request pkg/errors` above your Execute() func.
+4. Add string `//go:generate ../../genvalidate` above your Request struct.
 
 ```go
-package main
+package request
 
-import (
-    "fmt"
-    
-    "project/pkg/request"
-)
+//go:generate ../../genvalidate
 
-//go:generate ./genvalidate pkg/request pkg/errors
-
-// Execute - main project func.
-func Execute(req *request.Request) error {
-    if err := request.Validate(req); err != nil {
-        return fmt.Errorf("validation err: %w", err)
-    }
-    
-    return nil
+type Request struct {
+    Foo `json:"foo"`
+    Bar `json:"bar"`
+    Baz `json:"baz"`
 }
-
-func main() {}
+...
 
 ```
-
-- pkg/request - path where script creates `validate.go`, `validate_test.go`
-- pkg/errors - path where script creates `errors.go`
 
 5. Run script:
 

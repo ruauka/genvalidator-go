@@ -1,5 +1,7 @@
 package request
 
+//go:generate ../../genvalidate
+
 type Request struct {
 	Foo `json:"foo"`
 	Bar `json:"bar"`

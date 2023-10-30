@@ -43,13 +43,14 @@ func BarField3(req *Request) error {
 
 // BarField4 - валидация поля Bar.field_4.
 func BarField4(req *Request) error {
-	// require (rq)
-	if req.Bar.Field4 == nil {
-		return fmt.Errorf("failed check field 'Bar.field_4': %w", errors.ErrRequired)
-	}
 	// less than (lt)
 	if Len(*req.Bar.Field4) > 20 {
 		return fmt.Errorf("failed check field 'Bar.field_4': %w", errors.ErrGreaterThen20)
+	}
+
+	// require (rq)
+	if req.Bar.Field4 == nil {
+		return fmt.Errorf("failed check field 'Bar.field_4': %w", errors.ErrRequired)
 	}
 
 	return nil
@@ -67,17 +68,19 @@ func BazField5(req *Request) error {
 
 // BazField6 - валидация поля Baz.field_6.
 func BazField6(req *Request) error {
-	// require (rq)
-	if req.Baz.Field6 == nil {
-		return fmt.Errorf("failed check field 'Baz.field_6': %w", errors.ErrRequired)
+	// less than (lt)
+	if Len(*req.Baz.Field6) > 30 {
+		return fmt.Errorf("failed check field 'Baz.field_6': %w", errors.ErrGreaterThen30)
 	}
+
 	// greater than (gt)
 	if Len(*req.Baz.Field6) < 2 {
 		return fmt.Errorf("failed check field 'Baz.field_6': %w", errors.ErrLessThen2)
 	}
-	// less than (lt)
-	if Len(*req.Baz.Field6) > 30 {
-		return fmt.Errorf("failed check field 'Baz.field_6': %w", errors.ErrGreaterThen30)
+
+	// require (rq)
+	if req.Baz.Field6 == nil {
+		return fmt.Errorf("failed check field 'Baz.field_6': %w", errors.ErrRequired)
 	}
 
 	return nil
@@ -85,21 +88,23 @@ func BazField6(req *Request) error {
 
 // BazField7 - валидация поля Baz.field_7.
 func BazField7(req *Request) error {
-	// require (rq)
-	if req.Baz.Field7 == nil {
-		return fmt.Errorf("failed check field 'Baz.field_7': %w", errors.ErrRequired)
+	// less than (lt)
+	for idx, val := range req.Baz.Field7 {
+		if Len(val) > 10 {
+			return fmt.Errorf("failed check field 'Baz.field_7': %w, err in %dth array index", errors.ErrGreaterThen10, idx)
+		}
 	}
+
 	// greater than (gt)
 	for idx, val := range req.Baz.Field7 {
 		if Len(val) < 1 {
 			return fmt.Errorf("failed check field 'Baz.field_7': %w, err in %dth array index", errors.ErrLessThen1, idx)
 		}
 	}
-	// less than (lt)
-	for idx, val := range req.Baz.Field7 {
-		if Len(val) > 10 {
-			return fmt.Errorf("failed check field 'Baz.field_7': %w, err in %dth array index", errors.ErrGreaterThen10, idx)
-		}
+
+	// require (rq)
+	if req.Baz.Field7 == nil {
+		return fmt.Errorf("failed check field 'Baz.field_7': %w", errors.ErrRequired)
 	}
 
 	return nil
