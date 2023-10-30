@@ -11,10 +11,10 @@ import (
 func readStruct(path string) string {
 	f, err := os.Open(path)
 	if err != nil {
-		panic(err)
+		log.Fatalf("readStruct() err: %s", err)
 	}
 
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	b := new(strings.Builder)
 	io.Copy(b, f)
