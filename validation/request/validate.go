@@ -112,25 +112,27 @@ func BazField7(req *Request) error {
 
 // Validate - валидация входящего запроса.
 func Validate(req *Request) error {
-	if err := BazField7(req); err != nil {
+	var err error
+
+	if err = BazField7(req); err != nil {
 		return fmt.Errorf("validate error: %w", err)
 	}
-	if err := BazField6(req); err != nil {
+	if err = BazField6(req); err != nil {
 		return fmt.Errorf("validate error: %w", err)
 	}
-	if err := BazField5(req); err != nil {
+	if err = BazField5(req); err != nil {
 		return fmt.Errorf("validate error: %w", err)
 	}
-	if err := BarField4(req); err != nil {
+	if err = BarField4(req); err != nil {
 		return fmt.Errorf("validate error: %w", err)
 	}
-	if err := BarField3(req); err != nil {
+	if err = BarField3(req); err != nil {
 		return fmt.Errorf("validate error: %w", err)
 	}
-	if err := FooBar(req); err != nil {
+	if err = FooBar(req); err != nil {
 		return fmt.Errorf("validate error: %w", err)
 	}
-	if err := FooField2(req); err != nil {
+	if err = FooField2(req); err != nil {
 		return fmt.Errorf("validate error: %w", err)
 	}
 

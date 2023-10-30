@@ -19,7 +19,7 @@ func NewInvokeTemplate() *InvokeTemplate {
 func (i *InvokeTemplate) BufferConcat(template string, isFirstConcat bool) {
 	// первая конкатенация
 	if isFirstConcat {
-		i.Buffer = i.Buffer[:104] + template + i.Buffer[105:]
+		i.Buffer = i.Buffer[:121] + template + i.Buffer[122:]
 		return
 	}
 
@@ -39,6 +39,8 @@ func ValidateFuncTemplate() string {
 	return `
 // Validate - валидация входящего запроса.
 func Validate(req *Request) error {
+	var err error	
+
 
     return nil
 }
@@ -48,7 +50,7 @@ func Validate(req *Request) error {
 // CallingFuncTemplate - формирование шаблона вызова валидирующий функции.
 func CallingFuncTemplate(funcName string) string {
 	return fmt.Sprintf(
-		"\n    if err := %s(req); err != nil {"+
+		"\n    if err = %s(req); err != nil {"+
 			"\n        return fmt.Errorf(\"validate error: %%w\", err)\n    }\n", funcName,
 	)
 }
