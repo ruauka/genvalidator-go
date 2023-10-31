@@ -36,6 +36,6 @@ func fileOpenAppendMode(path string) *os.File {
 // createFileWithTemplate - Создание файла.go с нужной шапкой.
 func createFileWithTemplate(path string, fn func() string) {
 	if err := os.WriteFile(path, []byte(fn()), 0644); err != nil {
-		log.Fatalf("rewriteFile err: %s", err)
+		log.Fatalf("createFileWithTemplate err: %s", err)
 	}
 }

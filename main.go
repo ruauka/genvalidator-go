@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	internal.Execute()
+	// "prom" | "debug"
+	internal.Execute("prom")
 }

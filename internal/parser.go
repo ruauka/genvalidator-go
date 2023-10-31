@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"log"
 	"os"
+	"path"
 	"strings"
 	"text/template"
 
@@ -15,17 +16,38 @@ import (
 	"genvalidator/internal/templates"
 )
 
+// Paths - пути файлов и папок.
+type Paths struct {
+	requestPath  string
+	validatePath string
+	testingPath  string
+	errPath      string
+}
+
+// New - пути файлов и папок.
+func New(mode string) Paths {
+	if mode == "debug" {
+		return Paths{
+			requestPath:  "validation/request/request.go",
+			validatePath: "validation/request/validate.go",
+			testingPath:  "validation/request/validate_test.go",
+			errPath:      "validation/errors",
+		}
+	}
+
+	return Paths{
+		requestPath:  "request.go",
+		validatePath: "validate.go",
+		testingPath:  "validate_test.go",
+		errPath:      "../errors/errors.go",
+	}
+}
+
 const (
 	// название правил и тега
 	require     = "rq"
 	lessThan    = "lt"
 	greaterThan = "gt"
-
-	// пути файлов и папок
-	requestPath  = "request.go"
-	validatePath = "validate.go"
-	testingPath  = "validate_test.go"
-	errPath      = "../errors/errors.go"
 )
 
 var (
@@ -47,9 +69,10 @@ var (
 	isFirstConcatTesting = true
 )
 
-func Execute() {
+func Execute(mode string) {
+	paths := New(mode)
 	// зачитывание и парсинг файла со структурами в строку
-	s := readStruct(requestPath)
+	s := readStruct(paths.requestPath)
 
 	fs := token.NewFileSet()
 	// дерево ast
@@ -58,21 +81,30 @@ func Execute() {
 		log.Fatalf("ast file parse error: %s", err)
 	}
 
+	// определение путей для папки errors и файла errors.go для дебага и пром режима
+	var errPathDir, errPathFile string
+
+	if mode == "debug" {
+		errPathDir, errPathFile = paths.errPath, path.Join(paths.errPath, "errors.go")
+	} else {
+		errPathDir, errPathFile = paths.errPath[:9], paths.errPath
+	}
+
 	// проверка наличия папки errors, если нет, то создать
-	if err := os.Mkdir(errPath[:9], os.ModePerm); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(errPathDir, os.ModePerm); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
 
 	// Создание файла.go с нужной шапкой validate.go | errors.go | validate_test.go
-	createFileWithTemplate(validatePath, templates.HeadValidate)
-	createFileWithTemplate(errPath, templates.HeadErrors)
-	createFileWithTemplate(testingPath, func() string { return "" })
+	createFileWithTemplate(paths.validatePath, templates.HeadValidate)
+	createFileWithTemplate(errPathFile, templates.HeadErrors)
+	createFileWithTemplate(paths.testingPath, func() string { return "" })
 
 	// открытие файлов на дозапись validate.go | errors.go | validate_test.go
 	var (
-		fileValidate = fileOpenAppendMode(validatePath)
-		fileErr      = fileOpenAppendMode(errPath)
-		fileTesting  = fileOpenAppendMode(testingPath)
+		fileValidate = fileOpenAppendMode(paths.validatePath)
+		fileErr      = fileOpenAppendMode(errPathFile)
+		fileTesting  = fileOpenAppendMode(paths.testingPath)
 	)
 
 	// проход по нодам дерева ast
