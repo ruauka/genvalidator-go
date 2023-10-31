@@ -16,33 +16,6 @@ import (
 	"genvalidator/internal/templates"
 )
 
-// Paths - пути файлов и папок.
-type Paths struct {
-	requestPath  string
-	validatePath string
-	testingPath  string
-	errPath      string
-}
-
-// New - пути файлов и папок.
-func New(mode string) Paths {
-	if mode == "debug" {
-		return Paths{
-			requestPath:  "example/request/request.go",
-			validatePath: "example/request/validate.go",
-			testingPath:  "example/request/validate_test.go",
-			errPath:      "example/errors",
-		}
-	}
-
-	return Paths{
-		requestPath:  "request.go",
-		validatePath: "validate.go",
-		testingPath:  "validate_test.go",
-		errPath:      "../errors/errors.go",
-	}
-}
-
 const (
 	// название правил и тега
 	require     = "rq"
@@ -70,7 +43,7 @@ var (
 )
 
 func Execute(mode string) {
-	paths := New(mode)
+	paths := NewConfig(mode)
 	// зачитывание и парсинг файла со структурами в строку
 	s := readStruct(paths.requestPath)
 
