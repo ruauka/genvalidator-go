@@ -33,25 +33,8 @@ func fileOpenAppendMode(path string) *os.File {
 	return file
 }
 
-// needReWriteFile - проверка на необходимость перезаписи файла.go.
-func needReWriteFile(path string) bool {
-	file, err := os.Stat(path)
-	if err != nil {
-		// проверка наличия
-		if os.IsNotExist(err) {
-			return true
-		}
-	}
-	// проверяет пустой ли файл
-	if file.Size() != 0 {
-		return true
-	}
-
-	return false
-}
-
-// reWriteFile - перезапись файла.
-func reWriteFile(path string, fn func() string) {
+// createFileWithTemplate - Создание файла.go с нужной шапкой.
+func createFileWithTemplate(path string, fn func() string) {
 	if err := os.WriteFile(path, []byte(fn()), 0644); err != nil {
 		log.Fatalf("rewriteFile err: %s", err)
 	}

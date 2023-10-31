@@ -63,18 +63,10 @@ func Execute() {
 		log.Fatal(err)
 	}
 
-	// проверка на необходимость перезаписи файла validate.go. Перезаписывается шапка.
-	if needReWriteFile(validatePath) {
-		reWriteFile(validatePath, templates.HeadValidate)
-	}
-	// проверка на необходимость перезаписи файла errors.go. Перезаписывается шапка.
-	if needReWriteFile(errPath) {
-		reWriteFile(errPath, templates.HeadErrors)
-	}
-	// проверка на необходимость перезаписи файла validate_test.go. Перезаписывается шапка.
-	if needReWriteFile(testingPath) {
-		reWriteFile(testingPath, func() string { return "" })
-	}
+	// Создание файла.go с нужной шапкой validate.go | errors.go | validate_test.go
+	createFileWithTemplate(validatePath, templates.HeadValidate)
+	createFileWithTemplate(errPath, templates.HeadErrors)
+	createFileWithTemplate(testingPath, func() string { return "" })
 
 	// открытие файлов на дозапись validate.go | errors.go | validate_test.go
 	var (
