@@ -3,7 +3,7 @@ package request
 import (
 	"fmt"
 
-	"genvalidator/validation/errors"
+	"genvalidator/example/errors"
 )
 
 // Len - длина строки (в рунах).

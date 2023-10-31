@@ -28,10 +28,10 @@ type Paths struct {
 func New(mode string) Paths {
 	if mode == "debug" {
 		return Paths{
-			requestPath:  "validation/request/request.go",
-			validatePath: "validation/request/validate.go",
-			testingPath:  "validation/request/validate_test.go",
-			errPath:      "validation/errors",
+			requestPath:  "example/request/request.go",
+			validatePath: "example/request/validate.go",
+			testingPath:  "example/request/validate_test.go",
+			errPath:      "example/errors",
 		}
 	}
 

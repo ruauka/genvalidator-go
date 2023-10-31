@@ -11,7 +11,7 @@ import (
 	"github.com/ozontech/allure-go/pkg/framework/provider"
 	"github.com/ozontech/allure-go/pkg/framework/runner"
 
-	"genvalidator/validation/errors"
+	"genvalidator/example/errors"
 )
 
 func TestBazField7(t *testing.T) {
